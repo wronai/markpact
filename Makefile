@@ -1,4 +1,4 @@
-.PHONY: help extract run clean install dev test test-cov lint format build publish publish-prod convert
+.PHONY: help extract run clean install dev test test-cov lint format build publish publish-test convert bump-patch bump-minor bump-major version
 
 PYTHON ?= python3
 README ?= README.md
@@ -50,8 +50,28 @@ format: ## Format code
 build: clean ## Build package
 	$(PYTHON) -m build
 
-publish: build ## Publish to TestPyPI (uses ~/.pypirc credentials)
+publish-test: build ## Publish to TestPyPI (uses ~/.pypirc credentials)
 	$(PYTHON) -m twine upload --repository testpypi --config-file ~/.pypirc dist/*
 
-publish-prod: build ## Publish to PyPI production (uses ~/.pypirc credentials)
-	$(PYTHON) -m twine upload --repository pypi --config-file ~/.pypirc dist/*
+publish: build ## Publish to PyPI production (uses ~/.pypirc credentials)
+	$(PYTHON) -m twine upload dist/*
+
+# Version management
+version: ## Show current version
+	@grep -m1 'version = ' pyproject.toml | cut -d'"' -f2
+
+bump-patch: ## Bump patch version (0.1.0 → 0.1.1)
+	bump2version patch --config-file .bumpversion.toml
+	@echo "Bumped to $$(grep -m1 'version = ' pyproject.toml | cut -d'\"' -f2)"
+
+bump-minor: ## Bump minor version (0.1.0 → 0.2.0)
+	bump2version minor --config-file .bumpversion.toml
+	@echo "Bumped to $$(grep -m1 'version = ' pyproject.toml | cut -d'\"' -f2)"
+
+bump-major: ## Bump major version (0.1.0 → 1.0.0)
+	bump2version major --config-file .bumpversion.toml
+	@echo "Bumped to $$(grep -m1 'version = ' pyproject.toml | cut -d'\"' -f2)"
+
+release-patch: bump-patch publish ## Bump patch and publish
+release-minor: bump-minor publish ## Bump minor and publish
+release-major: bump-major publish ## Bump major and publish

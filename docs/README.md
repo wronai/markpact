@@ -10,6 +10,7 @@ Markpact to minimalny runtime pozwalający trzymać cały projekt w jednym `READ
 - [Kontrakt markpact:*](contract.md)
 - [Integracja CI/CD](ci-cd.md)
 - [Współpraca z LLM](llm.md)
+- [Publikacja pakietu](publishing.md)
 
 ## Szybki start
 

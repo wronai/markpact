@@ -1,15 +1,22 @@
 # TODO – Markpact
 
+## ✅ Zrealizowane
+
+- [x] Testy jednostkowe dla parsera codeblocków
+- [x] Flaga `--dry-run` – podgląd bez wykonywania
+- [x] Konwerter Markdown → Markpact (`--convert`, `--auto`)
+- [x] CLI z pełnymi opcjami
+- [x] Dokumentacja (docs/, examples/)
+- [x] Publikacja na PyPI (Makefile + .pypirc)
+
 ## 🎯 Priorytety
 
 ### P0 – Krytyczne
-- [ ] Testy jednostkowe dla parsera codeblocków
 - [ ] Walidacja `path=` (zabezpieczenie przed path traversal `../`)
 
 ### P1 – Ważne
 - [ ] Obsługa `markpact:deps node` (generowanie `package.json`, `npm install`)
 - [ ] Obsługa `markpact:deps system` (apt/brew)
-- [ ] Flaga `--dry-run` – podgląd bez wykonywania
 - [ ] Lepsze komunikaty błędów (kolorowe, z numerem linii w README)
 
 ### P2 – Nice to have

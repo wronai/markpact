@@ -241,8 +241,9 @@ make install   # lub: pip install -e .
 
 ## 8️⃣ Działający przykład (FastAPI)
 
-## 1️⃣ Dependencies
+## 1️⃣ Dependencies 
 
+markpact:deps python
 ```markpact:deps python
 fastapi
 uvicorn
@@ -252,6 +253,7 @@ uvicorn
 
 ## 2️⃣ Application Files
 
+markpact:file python path=app/main.py
 ```markpact:file python path=app/main.py
 from fastapi import FastAPI
 
@@ -266,6 +268,7 @@ def root():
 
 ## 3️⃣ Run Command
 
+markpact:run python
 ```markpact:run python
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8088}
 ```
