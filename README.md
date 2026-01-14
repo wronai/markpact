@@ -2,8 +2,56 @@
 
 # markpact
 
+[![PyPI version](https://img.shields.io/pypi/v/markpact.svg)](https://pypi.org/project/markpact/)
+[![Python](https://img.shields.io/pypi/pyversions/markpact.svg)](https://pypi.org/project/markpact/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/wronai/markpact/actions/workflows/tests.yml/badge.svg)](https://github.com/wronai/markpact/actions)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
 Markpact to minimalny runtime, który pozwala trzymać cały projekt w jednym `README.md`.
 Runtime ignoruje zwykły Markdown, a wykonuje wyłącznie codeblocki `markpact:*`.
+
+## 📚 Dokumentacja
+
+- [Pełna dokumentacja](docs/README.md)
+- [Kontrakt markpact:*](docs/contract.md)
+- [CI/CD Integration](docs/ci-cd.md)
+- [Współpraca z LLM](docs/llm.md)
+
+## 🎯 Przykłady
+
+| Przykład | Opis | Uruchomienie |
+|----------|------|--------------|
+| [FastAPI Todo](examples/fastapi-todo/) | REST API z bazą danych | `markpact examples/fastapi-todo/README.md` |
+| [Flask Blog](examples/flask-blog/) | Aplikacja webowa z szablonami | `markpact examples/flask-blog/README.md` |
+| [CLI Tool](examples/cli-tool/) | Narzędzie linii poleceń | `markpact examples/cli-tool/README.md` |
+| [Streamlit Dashboard](examples/streamlit-dashboard/) | Dashboard danych | `markpact examples/streamlit-dashboard/README.md` |
+| [Kivy Mobile](examples/kivy-mobile/) | Aplikacja mobilna | `markpact examples/kivy-mobile/README.md` |
+| [Electron Desktop](examples/electron-desktop/) | Aplikacja desktopowa | `markpact examples/electron-desktop/README.md` |
+| [Markdown Converter](examples/markdown-converter/) | Konwersja zwykłego MD | `markpact examples/markdown-converter/sample.md --convert` |
+
+## 🔄 Konwersja zwykłego Markdown
+
+Markpact może automatycznie konwertować zwykłe pliki Markdown (bez tagów `markpact:*`) do formatu wykonywalnego:
+
+```bash
+# Podgląd konwersji
+markpact README.md --convert-only
+
+# Konwersja i uruchomienie
+markpact README.md --convert
+
+# Auto-detekcja (konwertuj jeśli brak markpact blocks)
+markpact README.md --auto
+
+# Zapisz skonwertowany plik
+markpact README.md --convert-only --save-converted output.md
+```
+
+Konwerter analizuje code blocks i na podstawie heurystyk wykrywa:
+- **Zależności** → `markpact:deps` (pakiety Python/Node)
+- **Pliki źródłowe** → `markpact:file` (importy, klasy, funkcje)
+- **Komendy** → `markpact:run` (python, uvicorn, npm, etc.)
 
 ## 1️⃣ Cel projektu
 

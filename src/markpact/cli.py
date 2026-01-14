@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from .converter import convert_markdown_to_markpact, print_conversion_report
 from .parser import parse_blocks
 from .runner import install_deps, run_cmd
 from .sandbox import Sandbox
@@ -19,6 +20,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("readme", nargs="?", default="README.md", help="Path to README.md")
     parser.add_argument("--sandbox", "-s", help="Sandbox directory (default: ./sandbox)")
     parser.add_argument("--dry-run", "-n", action="store_true", help="Show what would be done")
+    parser.add_argument("--convert", "-c", action="store_true", 
+                        help="Convert regular Markdown to markpact format on-the-fly")
+    parser.add_argument("--convert-only", action="store_true",
+                        help="Only convert and print result, don't execute")
+    parser.add_argument("--save-converted", metavar="FILE",
+                        help="Save converted markpact to file")
+    parser.add_argument("--auto", "-a", action="store_true",
+                        help="Auto-detect and convert if no markpact blocks found")
     parser.add_argument("--version", "-V", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--quiet", "-q", action="store_true", help="Suppress output")
 
@@ -31,11 +40,47 @@ def main(argv: list[str] | None = None) -> int:
 
     sandbox = Sandbox(args.sandbox)
     verbose = not args.quiet
+    
+    # Read original content
+    original_text = readme.read_text()
+    text_to_parse = original_text
+    
+    # Check if conversion is needed
+    has_markpact = "```markpact:" in original_text
+    
+    if args.convert or args.convert_only or (args.auto and not has_markpact):
+        if verbose:
+            print(f"[markpact] Converting {readme} to markpact format...")
+        
+        result = convert_markdown_to_markpact(original_text)
+        
+        if verbose or args.convert_only:
+            print_conversion_report(result)
+        
+        if args.save_converted:
+            save_path = Path(args.save_converted)
+            save_path.write_text(result.converted_text)
+            print(f"[markpact] Saved converted file to {save_path}")
+        
+        if args.convert_only:
+            # Print converted content and exit
+            print("\n--- CONVERTED CONTENT ---\n")
+            print(result.converted_text)
+            return 0
+        
+        text_to_parse = result.converted_text
+    
+    elif not has_markpact and verbose:
+        # Suggest conversion
+        print(f"[markpact] WARNING: No markpact blocks found in {readme}")
+        print(f"[markpact] TIP: Use --convert or --auto to convert regular Markdown")
+        print(f"[markpact]      markpact {readme} --convert")
+        print()
 
     if verbose:
         print(f"[markpact] Parsing {readme}")
 
-    blocks = parse_blocks(readme.read_text())
+    blocks = parse_blocks(text_to_parse)
     deps: list[str] = []
     run_command: str | None = None
 
