@@ -23,6 +23,9 @@ markpact examples/<nazwa>/README.md
 | [kivy-mobile](kivy-mobile/) | Mobile | Kalkulator BMI (Android/iOS) | Kivy, Buildozer |
 | [electron-desktop](electron-desktop/) | Desktop | Notatnik Markdown | Electron, Node.js |
 | [markdown-converter](markdown-converter/) | Converter | Konwersja zwykłego Markdown do markpact | `--convert`, `--auto` |
+| [pypi-publish](pypi-publish/) | Publish | Publikacja paczki Python do PyPI | `--publish`, `--bump` |
+| [npm-publish](npm-publish/) | Publish | Publikacja paczki Node.js do npm | `--publish`, `--registry` |
+| [docker-publish](docker-publish/) | Publish | Budowanie i publikacja obrazu Docker | `--publish`, Docker |
 
 ## Struktura przykładu
 

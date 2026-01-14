@@ -211,23 +211,29 @@ def run_service_with_tests(
     cmd = run_command.replace("${MARKPACT_PORT:-8000}", str(port))
     cmd = re.sub(r'--port\s+\d+', f'--port {port}', cmd)
     
+    # Use venv's uvicorn if available (absolute path)
+    if sandbox.venv_bin.exists() and cmd.strip().startswith("uvicorn"):
+        cmd = cmd.replace("uvicorn", str(sandbox.venv_bin / "uvicorn"), 1)
+    
+    if verbose:
+        print(f"[markpact] Command: {cmd}")
+    
     process = subprocess.Popen(
         cmd,
         shell=True,
         cwd=sandbox.path,
         env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        stdout=None,  # Let output go to terminal for debugging
+        stderr=None,
     )
     
     try:
         # Give the process a moment to start
-        time.sleep(2)
+        time.sleep(3)
         
         # Check if process crashed immediately
         if process.poll() is not None:
-            output = process.stdout.read().decode() if process.stdout else ""
-            return 1, TestSuite([TestResult("Service startup", False, f"Process exited: {output[:200]}", 0)])
+            return 1, TestSuite([TestResult("Service startup", False, f"Process exited with code {process.returncode}", 0)])
         
         # Wait for service to start
         if verbose:

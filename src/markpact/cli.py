@@ -140,6 +140,12 @@ def main(argv: list[str] | None = None) -> int:
                         help="Run tests defined in markpact:test blocks")
     parser.add_argument("--test-only", action="store_true",
                         help="Only run tests, don't keep service running")
+    parser.add_argument("--publish", action="store_true",
+                        help="Publish to registry defined in markpact:publish block")
+    parser.add_argument("--bump", choices=["major", "minor", "patch"],
+                        help="Bump version before publishing")
+    parser.add_argument("--registry", metavar="NAME",
+                        help="Override registry (pypi, npm, docker, github, ghcr)")
 
     args = parser.parse_args(args_list)
     
@@ -256,6 +262,7 @@ def main(argv: list[str] | None = None) -> int:
     deps: list[str] = []
     run_command: str | None = None
     test_blocks: list[tuple[str, str]] = []  # (meta, body)
+    publish_config_block: str | None = None
 
     for block in blocks:
         if block.kind == "bootstrap":
@@ -281,7 +288,50 @@ def main(argv: list[str] | None = None) -> int:
         
         elif block.kind == "test":
             test_blocks.append((block.meta, block.body))
+        
+        elif block.kind == "publish":
+            publish_config_block = block.body
 
+    # Publish mode
+    if args.publish:
+        from .publisher import parse_publish_block, publish, update_version_in_readme
+        
+        if not publish_config_block:
+            print("[markpact] ERROR: No markpact:publish block found in README", file=sys.stderr)
+            return 1
+        
+        config = parse_publish_block(publish_config_block)
+        
+        # Override registry if specified
+        if args.registry:
+            config.registry = args.registry
+        
+        if args.dry_run:
+            print(f"[markpact] Would publish {config.name} v{config.version} to {config.registry}")
+            if args.bump:
+                from .publisher import bump_version
+                new_ver = bump_version(config.version, args.bump)
+                print(f"[markpact] Would bump version to {new_ver}")
+            return 0
+        
+        result = publish(config, sandbox, bump=args.bump, verbose=verbose)
+        
+        if result.success:
+            print(f"[markpact] ✓ {result.message}")
+            print(f"[markpact] Version: {result.version}")
+            if result.url:
+                print(f"[markpact] URL: {result.url}")
+            
+            # Update version in README if bumped
+            if args.bump:
+                update_version_in_readme(readme, result.version)
+                print(f"[markpact] Updated version in {readme}")
+            
+            return 0
+        else:
+            print(f"[markpact] ERROR: {result.message}", file=sys.stderr)
+            return 1
+    
     # Docker mode
     if args.docker:
         from .docker_runner import generate_dockerfile, build_and_run_docker, check_docker_available

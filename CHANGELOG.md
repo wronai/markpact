@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic port switching when "address in use"
   - Updates README with new port on fix
   - Enabled by default, disable with `--no-auto-fix`
+- **HTTP Testing** (`tester.py`):
+  - Define tests in `markpact:test http` blocks
+  - Format: `GET /path EXPECT 200`, `POST /path BODY {...} EXPECT 201`
+  - Run with `--test` or `--test-only` flags
+  - Auto-starts service, runs tests, shows results summary
 - Python package structure (`src/markpact/`)
 - CLI entry point `markpact` with full options
 - Markdown → Markpact converter (`--convert`, `--convert-only`, `--auto`)

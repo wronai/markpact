@@ -11,6 +11,8 @@
 Markpact to minimalny runtime, który pozwala trzymać cały projekt w jednym `README.md`.
 Runtime ignoruje zwykły Markdown, a wykonuje wyłącznie codeblocki `markpact:*`.
 
+![img_3.png](img_3.png)
+
 ## 🚀 Szybki start
 
 ```bash
@@ -315,7 +317,7 @@ markpact -p "REST API dla książek"
 
 ## Działający przykład (FastAPI)
 
-## 1️⃣ Dependencies 
+### 1️⃣ Dependencies 
 
 *markpact:deps python*
 ```markpact:deps python
@@ -323,9 +325,7 @@ fastapi
 uvicorn
 ```
 
----
-
-## 2️⃣ Application Files
+### 2️⃣ Application Files
 
 *markpact:file python path=app/main.py*
 ```markpact:file python path=app/main.py
@@ -338,9 +338,7 @@ def root():
     return {"message": "Hello from Executable Markdown"}
 ```
 
----
-
-## 3️⃣ Run Command
+### 3️⃣ Run Command
 
 *markpact:run python*
 ```markpact:run python

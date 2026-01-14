@@ -80,6 +80,10 @@ Auto-fix:
   --auto-fix             Auto-naprawa błędów runtime (domyślnie włączone)
   --no-auto-fix          Wyłącz auto-naprawę błędów
 
+Testowanie:
+  -t, --test             Uruchom testy z bloków markpact:test
+  --test-only            Tylko uruchom testy (zatrzymaj serwis po testach)
+
 Konfiguracja (markpact config):
   --init                 Utwórz plik konfiguracyjny ~/.markpact/.env
   --force                Nadpisz istniejący plik konfiguracyjny
@@ -174,6 +178,54 @@ uvicorn app.main:app --port 8000
 2. Tworzenie plików (`markpact:file`)
 3. Instalacja zależności (`markpact:deps`)
 4. Uruchomienie komendy (`markpact:run`)
+
+## Testowanie API
+
+Markpact umożliwia definiowanie testów HTTP bezpośrednio w README:
+
+```markdown
+```markpact:test http
+# Health check
+GET /health EXPECT 200
+
+# Test API
+POST /shorten BODY {"url":"https://example.com"} EXPECT 200
+GET /abc123 EXPECT 301
+\```
+```
+
+### Uruchamianie testów
+
+```bash
+# Uruchom testy (serwis startuje automatycznie)
+markpact README.md --test-only
+
+# Generuj z testami i uruchom
+markpact -e url-shortener -o url/README.md --test-only
+```
+
+### Format testów HTTP
+
+```
+METHOD /path EXPECT status_code
+METHOD /path BODY {"json":"data"} EXPECT status_code
+```
+
+Przykłady:
+- `GET /health EXPECT 200`
+- `POST /users BODY {"name":"John"} EXPECT 201`
+- `DELETE /users/1 EXPECT 204`
+
+### Wynik testów
+
+```
+============================================================
+TEST RESULTS: 2/3 passed
+============================================================
+  ✓ GET /health: Status 200 (expected 200)
+  ✓ POST /shorten: Status 200 (expected 200)
+  ✗ GET /abc: Status 404 (expected 301)
+```
 
 ## Linki
 

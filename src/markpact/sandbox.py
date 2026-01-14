@@ -8,7 +8,7 @@ class Sandbox:
     """Manages sandbox directory for markpact execution"""
 
     def __init__(self, path: str | Path | None = None):
-        self.path = Path(path or os.environ.get("MARKPACT_SANDBOX", "./sandbox"))
+        self.path = Path(path or os.environ.get("MARKPACT_SANDBOX", "./sandbox")).resolve()
         self.path.mkdir(parents=True, exist_ok=True)
 
     @property
