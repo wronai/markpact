@@ -53,7 +53,7 @@ build: clean ## Build package
 publish-test: build ## Publish to TestPyPI (uses ~/.pypirc credentials)
 	$(PYTHON) -m twine upload --repository testpypi --config-file ~/.pypirc dist/*
 
-publish: build ## Publish to PyPI production (uses ~/.pypirc credentials)
+publish: bump-patch build ## Publish to PyPI production (uses ~/.pypirc credentials)
 	$(PYTHON) -m twine upload dist/*
 
 # Version management
@@ -61,17 +61,15 @@ version: ## Show current version
 	@grep -m1 'version = ' pyproject.toml | cut -d'"' -f2
 
 bump-patch: ## Bump patch version (0.1.0 → 0.1.1)
-	bump2version patch --config-file .bumpversion.toml
+	bump2version patch --config-file .bumpversion.toml --allow-dirty
 	@echo "Bumped to $$(grep -m1 'version = ' pyproject.toml | cut -d'\"' -f2)"
 
 bump-minor: ## Bump minor version (0.1.0 → 0.2.0)
-	bump2version minor --config-file .bumpversion.toml
+	bump2version minor --config-file .bumpversion.toml --allow-dirty
 	@echo "Bumped to $$(grep -m1 'version = ' pyproject.toml | cut -d'\"' -f2)"
 
 bump-major: ## Bump major version (0.1.0 → 1.0.0)
-	bump2version major --config-file .bumpversion.toml
+	bump2version major --config-file .bumpversion.toml --allow-dirty
 	@echo "Bumped to $$(grep -m1 'version = ' pyproject.toml | cut -d'\"' -f2)"
 
-release-patch: bump-patch publish ## Bump patch and publish
-release-minor: bump-minor publish ## Bump minor and publish
-release-major: bump-major publish ## Bump major and publish
+release: bump-patch publish ## Bump patch and publish

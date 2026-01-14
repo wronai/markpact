@@ -239,7 +239,7 @@ make install   # lub: pip install -e .
 - **Ekstrakcja bootstrapu**
   Nie używaj zakresu `/,/```/` (bo ``` może wystąpić w treści, np. w regexie). Używaj `^```$` na końcu.
 
-## 8️⃣ Działający przykład (FastAPI)
+## Działający przykład (FastAPI)
 
 ## 1️⃣ Dependencies 
 
