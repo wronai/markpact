@@ -84,6 +84,11 @@ Testowanie:
   -t, --test             Uruchom testy z bloków markpact:test
   --test-only            Tylko uruchom testy (zatrzymaj serwis po testach)
 
+Publikacja:
+  --publish              Publikuj do rejestru (markpact:publish block)
+  --bump TYPE            Bump wersji przed publikacją (major, minor, patch)
+  --registry NAME        Nadpisz rejestr (pypi, npm, docker, github, ghcr)
+
 Konfiguracja (markpact config):
   --init                 Utwórz plik konfiguracyjny ~/.markpact/.env
   --force                Nadpisz istniejący plik konfiguracyjny
@@ -178,6 +183,60 @@ uvicorn app.main:app --port 8000
 2. Tworzenie plików (`markpact:file`)
 3. Instalacja zależności (`markpact:deps`)
 4. Uruchomienie komendy (`markpact:run`)
+
+## Publikacja do rejestrów
+
+Markpact umożliwia publikację artefaktów do różnych rejestrów bezpośrednio z README.
+
+### Blok `markpact:publish`
+
+```markdown
+```markpact:publish
+registry = pypi
+name = my-package
+version = 0.1.0
+description = Mój pakiet
+author = Twoje Imię
+license = MIT
+keywords = example, demo
+repository = https://github.com/user/repo
+\```
+```
+
+### Obsługiwane rejestry
+
+| Rejestr | Wartość `registry` | Opis |
+|---------|-------------------|------|
+| PyPI | `pypi` | Python Package Index |
+| TestPyPI | `pypi-test` | PyPI testowy |
+| npm | `npm` | Node.js packages |
+| Docker Hub | `docker` | Obrazy Docker |
+| GitHub Packages | `github` | GitHub npm |
+| GHCR | `ghcr` | GitHub Container Registry |
+
+### Użycie
+
+```bash
+# Podgląd bez publikacji
+markpact README.md --publish --dry-run
+
+# Publikacja do PyPI
+markpact README.md --publish
+
+# Publikacja z bump wersji
+markpact README.md --publish --bump patch  # 0.1.0 -> 0.1.1
+markpact README.md --publish --bump minor  # 0.1.0 -> 0.2.0
+markpact README.md --publish --bump major  # 0.1.0 -> 1.0.0
+
+# Nadpisanie rejestru
+markpact README.md --publish --registry docker
+```
+
+### Przykłady
+
+- [PyPI Publish](../examples/pypi-publish/) - Python packages
+- [npm Publish](../examples/npm-publish/) - Node.js packages  
+- [Docker Publish](../examples/docker-publish/) - Docker images
 
 ## Testowanie API
 

@@ -54,6 +54,26 @@ markpact -p "Blog API z komentarzami" -o blog/README.md --run --docker
 
 Szczegóły: [docs/generator.md](docs/generator.md)
 
+## 📦 Publikacja do rejestrów
+
+Publikuj artefakty bezpośrednio z README:
+
+```bash
+# PyPI
+markpact README.md --publish --bump patch
+
+# npm
+markpact README.md --publish --registry npm
+
+# Docker Hub
+markpact README.md --publish --registry docker
+
+# GitHub Container Registry
+markpact README.md --publish --registry ghcr
+```
+
+Obsługiwane rejestry: **PyPI**, **npm**, **Docker Hub**, **GitHub Packages**, **GHCR**
+
 ## 📚 Dokumentacja
 
 - [Pełna dokumentacja](docs/README.md)

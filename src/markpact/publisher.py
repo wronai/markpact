@@ -426,8 +426,13 @@ def publish_github_packages(
 # Main publish function
 # ============================================================================
 
-def parse_publish_block(block_body: str) -> PublishConfig:
-    """Parse publish block content into config."""
+def parse_publish_block(block_body: str, meta: str = "") -> PublishConfig:
+    """Parse publish block content into config.
+    
+    Args:
+        block_body: The body of the publish block
+        meta: The meta line (first line after markpact:publish)
+    """
     config = {
         "registry": "pypi",
         "name": "my-package",
@@ -439,7 +444,13 @@ def parse_publish_block(block_body: str) -> PublishConfig:
         "keywords": [],
     }
     
-    for line in block_body.strip().splitlines():
+    # Include meta in parsing if it contains config
+    all_lines = []
+    if meta and "=" in meta:
+        all_lines.append(meta)
+    all_lines.extend(block_body.strip().splitlines())
+    
+    for line in all_lines:
         line = line.strip()
         if not line or line.startswith("#"):
             continue

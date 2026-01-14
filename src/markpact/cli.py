@@ -290,7 +290,7 @@ def main(argv: list[str] | None = None) -> int:
             test_blocks.append((block.meta, block.body))
         
         elif block.kind == "publish":
-            publish_config_block = block.body
+            publish_config_block = (block.meta, block.body)
 
     # Publish mode
     if args.publish:
@@ -300,7 +300,8 @@ def main(argv: list[str] | None = None) -> int:
             print("[markpact] ERROR: No markpact:publish block found in README", file=sys.stderr)
             return 1
         
-        config = parse_publish_block(publish_config_block)
+        meta, body = publish_config_block
+        config = parse_publish_block(body, meta)
         
         # Override registry if specified
         if args.registry:

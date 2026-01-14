@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Format: `GET /path EXPECT 200`, `POST /path BODY {...} EXPECT 201`
   - Run with `--test` or `--test-only` flags
   - Auto-starts service, runs tests, shows results summary
+- **Multi-Registry Publishing** (`publisher.py`):
+  - Publish to PyPI, npm, Docker Hub, GitHub Packages, GHCR
+  - Define config in `markpact:publish` blocks
+  - Auto-bump versioning: `--bump patch|minor|major`
+  - Override registry: `--registry docker`
+  - Generates pyproject.toml, package.json, Dockerfile as needed
 - Python package structure (`src/markpact/`)
 - CLI entry point `markpact` with full options
 - Markdown → Markpact converter (`--convert`, `--convert-only`, `--auto`)
