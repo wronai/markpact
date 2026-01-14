@@ -27,6 +27,9 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
+llm = [
+    "litellm>=1.0",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -34,6 +37,7 @@ dev = [
     "build",
     "twine",
     "bump2version>=1.0",
+    "litellm>=1.0",
 ]
 
 [project.scripts]

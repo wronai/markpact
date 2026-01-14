@@ -7,6 +7,7 @@ Markpact to minimalny runtime pozwalający trzymać cały projekt w jednym `READ
 - [Szybki start](#szybki-start)
 - [CLI Reference](#cli-reference)
 - [Konwersja Markdown](#konwersja-markdown)
+- [Generowanie z LLM](generator.md) ⭐ **NEW**
 - [Kontrakt markpact:*](contract.md)
 - [Integracja CI/CD](ci-cd.md)
 - [Współpraca z LLM](llm.md)
@@ -50,16 +51,39 @@ markpact [OPTIONS] [README]
 Argumenty:
   README                 Ścieżka do pliku Markdown (domyślnie: README.md)
 
-Opcje:
+Podstawowe opcje:
   -s, --sandbox DIR      Katalog sandbox (domyślnie: ./sandbox)
   -n, --dry-run          Pokaż co zostanie wykonane, bez uruchamiania
   -q, --quiet            Tryb cichy (bez komunikatów)
+  -V, --version          Pokaż wersję
+  -h, --help             Pokaż pomoc
+
+Konwersja Markdown:
   -c, --convert          Konwertuj zwykły Markdown do markpact i uruchom
   --convert-only         Tylko konwertuj i wyświetl wynik
   --save-converted FILE  Zapisz skonwertowany plik
   -a, --auto             Auto-detekcja: konwertuj jeśli brak markpact blocks
-  -V, --version          Pokaż wersję
-  -h, --help             Pokaż pomoc
+
+Generowanie z LLM:
+  -p, --prompt TEXT      Generuj kontrakt z opisu tekstowego
+  -o, --output FILE      Plik wyjściowy (domyślnie: README.md)
+  -m, --model MODEL      Model LLM (domyślnie: ollama/qwen2.5-coder:7b)
+  --api-base URL         URL API (domyślnie: http://localhost:11434)
+  -e, --example NAME     Użyj gotowego przykładu (zobacz --list-examples)
+  --list-examples        Pokaż dostępne przykłady
+```
+
+### Przykłady użycia
+
+```bash
+# Uruchom projekt
+markpact README.md
+
+# Wygeneruj nowy projekt z LLM
+markpact -p "REST API do zadań z SQLite" -o todo/README.md
+
+# Uruchom wygenerowany projekt
+markpact todo/README.md
 ```
 
 ## Konwersja Markdown
