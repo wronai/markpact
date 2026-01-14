@@ -239,6 +239,37 @@ make install   # lub: pip install -e .
 - **Ekstrakcja bootstrapu**
   Nie używaj zakresu `/,/```/` (bo ``` może wystąpić w treści, np. w regexie). Używaj `^```$` na końcu.
 
+
+
+### Plik konfiguracyjny (~/.markpact/.env)
+
+```bash
+# Markpact LLM Configuration
+MARKPACT_MODEL="openrouter/nvidia/nemotron-3-nano-30b-a3b:free"
+MARKPACT_API_BASE="https://openrouter.ai/api/v1"
+MARKPACT_API_KEY="sk-or-v1-xxxxx"
+MARKPACT_TEMPERATURE="0.7"
+MARKPACT_MAX_TOKENS="4096"
+```
+
+## Obsługiwani providerzy LLM
+
+### Ollama (lokalny, domyślny)
+
+```bash
+markpact config --provider ollama
+markpact -p "REST API dla książek"
+```
+
+### OpenRouter (darmowe modele!)
+
+```bash
+markpact config --provider openrouter --api-key sk-or-v1-xxxxx
+markpact config --model openrouter/nvidia/nemotron-3-nano-30b-a3b:free
+markpact -p "REST API dla książek"
+```
+
+
 ## Działający przykład (FastAPI)
 
 ## 1️⃣ Dependencies 

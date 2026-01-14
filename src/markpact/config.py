@@ -24,7 +24,7 @@ PROVIDER_PRESETS = {
         "MARKPACT_API_KEY": "",
     },
     "openrouter": {
-        "MARKPACT_MODEL": "openrouter/nvidia/llama-3.1-nemotron-70b-instruct:free",
+        "MARKPACT_MODEL": "openrouter/nvidia/nemotron-3-nano-30b-a3b:free",
         "MARKPACT_API_BASE": "https://openrouter.ai/api/v1",
         "MARKPACT_API_KEY": "",  # User must provide
     },

@@ -11,6 +11,9 @@ pip install markpact[llm]
 ## Szybki start
 
 ```bash
+# Zainicjuj konfigurację (tworzy ~/.markpact/.env)
+markpact config --init
+
 # Generuj z promptu
 markpact -p "REST API do zarządzania zadaniami z SQLite i pełnym CRUD."
 
@@ -24,22 +27,157 @@ markpact -e todo-api -o todo-project/README.md
 markpact --list-examples
 ```
 
-## Konfiguracja modelu
+## Konfiguracja (markpact config)
 
-### Zmienne środowiskowe
+Markpact przechowuje konfigurację LLM w pliku `~/.markpact/.env`.
 
-| Zmienna | Opis | Domyślnie |
-|---------|------|-----------|
-| `MARKPACT_MODEL` | Model LLM | `ollama/qwen2.5-coder:7b` |
-| `MARKPACT_API_BASE` | URL API | `http://localhost:11434` |
-| `MARKPACT_TEMPERATURE` | Temperatura (0-1) | `0.7` |
-| `MARKPACT_MAX_TOKENS` | Max tokenów odpowiedzi | `4096` |
+### Inicjalizacja
 
-### Flagi CLI
+```bash
+# Utwórz plik konfiguracyjny z domyślnymi wartościami
+markpact config --init
+
+# Pokaż aktualną konfigurację
+markpact config
+
+# Wymuś nadpisanie istniejącej konfiguracji
+markpact config --init --force
+```
+
+### Ustawianie wartości
+
+```bash
+# Ustaw model
+markpact config --model openrouter/nvidia/nemotron-3-nano-30b-a3b:free
+
+# Ustaw API key
+markpact config --api-key sk-or-v1-xxxxx
+
+# Ustaw API base URL
+markpact config --api-base https://openrouter.ai/api/v1
+```
+
+### Presety providerów
+
+```bash
+# Lista dostępnych providerów
+markpact config --list-providers
+
+# Zastosuj preset (automatycznie ustawia model i API base)
+markpact config --provider openrouter --api-key sk-or-v1-xxxxx
+markpact config --provider openai --api-key sk-xxxxx
+markpact config --provider ollama  # lokalny, bez klucza
+```
+
+### Plik konfiguracyjny (~/.markpact/.env)
+
+```bash
+# Markpact LLM Configuration
+MARKPACT_MODEL="openrouter/nvidia/nemotron-3-nano-30b-a3b:free"
+MARKPACT_API_BASE="https://openrouter.ai/api/v1"
+MARKPACT_API_KEY="sk-or-v1-xxxxx"
+MARKPACT_TEMPERATURE="0.7"
+MARKPACT_MAX_TOKENS="4096"
+```
+
+## Obsługiwane providery
+
+### Ollama (lokalny, domyślny)
+
+```bash
+markpact config --provider ollama
+markpact -p "REST API dla książek"
+```
+
+### OpenRouter (darmowe modele!)
+
+```bash
+markpact config --provider openrouter --api-key sk-or-v1-xxxxx
+markpact config --model openrouter/nvidia/nemotron-3-nano-30b-a3b:free
+markpact -p "REST API dla książek"
+```
+
+Darmowe modele OpenRouter:
+- `openrouter/nvidia/nemotron-3-nano-30b-a3b:free`
+- `openrouter/meta-llama/llama-3.2-3b-instruct:free`
+- `openrouter/mistralai/mistral-7b-instruct:free`
+
+## One-liner: Generuj i uruchom
+
+Wygeneruj i uruchom usługę jedną komendą:
+
+```bash
+# Generuj i uruchom natychmiast
+markpact -p "REST API do zarządzania zadaniami" -o todo/README.md --run
+
+# Z przykładu
+markpact -e todo-api -o todo/README.md --run
+
+# Z Docker sandbox (izolacja)
+markpact -p "URL shortener z FastAPI" -o url/README.md --run --docker
+```
+
+### Przykłady one-liner
+
+```bash
+# Todo API - od tekstu do działającej usługi
+markpact -p "REST API do zadań z SQLite, CRUD, FastAPI" -o /tmp/todo/README.md -r
+
+# URL Shortener
+markpact -e url-shortener -o /tmp/url/README.md -r
+
+# Blog API z Docker
+markpact -e blog-api -o /tmp/blog/README.md -r --docker
+
+# Generator QR kodów
+markpact -e qr-generator -o /tmp/qr/README.md -r
+```
+
+## Docker Sandbox
+
+Uruchom w izolowanym kontenerze Docker:
+
+```bash
+# Generuj i uruchom w Docker
+markpact -p "Chat WebSocket z FastAPI" -o chat/README.md --run --docker
+
+# Uruchom istniejący projekt w Docker
+markpact my-project/README.md --docker
+```
+
+Docker automatycznie:
+- Tworzy `Dockerfile` w sandbox
+- Buduje obraz `markpact-app`
+- Uruchamia kontener na porcie 8000
+- Udostępnia pod `http://localhost:8000`
+
+### OpenAI
+
+```bash
+markpact config --provider openai --api-key sk-xxxxx
+markpact -p "REST API dla książek"
+```
+
+### Anthropic
+
+```bash
+markpact config --provider anthropic --api-key sk-ant-xxxxx
+markpact -p "REST API dla książek"
+```
+
+### Groq (szybkie, darmowe)
+
+```bash
+markpact config --provider groq --api-key gsk_xxxxx
+markpact -p "REST API dla książek"
+```
+
+### Flagi CLI (nadpisują config)
 
 ```bash
 markpact -p "..." --model ollama/codellama:7b
 markpact -p "..." --api-base http://localhost:11434
+markpact -p "..." --api-key sk-xxxxx
 ```
 
 ## Obsługiwane modele

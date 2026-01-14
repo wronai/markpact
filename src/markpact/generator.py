@@ -23,6 +23,7 @@ class GeneratorConfig:
     """Configuration for LLM generator"""
     model: str = "ollama/qwen2.5-coder:14b"
     api_base: Optional[str] = None
+    api_key: Optional[str] = None
     temperature: float = 0.7
     max_tokens: int = 4096
     
@@ -32,6 +33,7 @@ class GeneratorConfig:
         return cls(
             model=os.environ.get("MARKPACT_MODEL", "ollama/qwen2.5-coder:14b"),
             api_base=os.environ.get("MARKPACT_API_BASE", "http://localhost:11434"),
+            api_key=os.environ.get("MARKPACT_API_KEY", ""),
             temperature=float(os.environ.get("MARKPACT_TEMPERATURE", "0.7")),
             max_tokens=int(os.environ.get("MARKPACT_MAX_TOKENS", "4096")),
         )
@@ -47,53 +49,93 @@ class GeneratorConfig:
 
 SYSTEM_PROMPT = """You are a Markpact contract generator. Generate executable README.md files.
 
-## CRITICAL FORMAT - Follow EXACTLY:
+## CRITICAL FORMAT RULES:
+
+1. EVERY code block MUST have opening ``` AND closing ``` on separate lines
+2. Use exactly this format for each block type:
+
+### Dependencies block:
+```markpact:deps python
+fastapi
+uvicorn
+sqlalchemy
+```
+
+### File block (MUST include path=):
+```markpact:file python path=app/main.py
+from fastapi import FastAPI
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"status": "ok"}
+```
+
+### Run block (MUST be properly closed):
+```markpact:run python
+uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
+```
+
+## IMPORTANT:
+- ALWAYS close EVERY code block with ``` on its own line
+- Use ${MARKPACT_PORT:-8000} for configurable ports
+- Generate COMPLETE working code - no TODOs, no placeholders, no "..."
+- Use Python 3.10+ with type hints and Pydantic models
+- For FastAPI: use proper Request/Response models, not raw request.json()
+
+## OUTPUT STRUCTURE:
+```
+# Project Title
+
+Brief description.
+
+## Features
+- feature 1
+- feature 2
+
+## API Endpoints
+- POST /endpoint - description
+- GET /endpoint - description
+
+---
 
 ```markpact:deps python
-package1
-package2
+dep1
+dep2
 ```
 
 ```markpact:file python path=app/main.py
-# actual code here
+# complete working code
 ```
 
 ```markpact:run python
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
 ```
-
-## RULES:
-1. Each markpact block MUST be a proper fenced code block with triple backticks
-2. Dependencies: one package per line, no extras
-3. Files: include `path=` in the header line
-4. Run: single command to start the app
-5. Use `${MARKPACT_PORT:-8000}` for ports
-6. Generate COMPLETE working code - no TODOs or placeholders
-7. Use Python 3.10+ with type hints
-
-## OUTPUT STRUCTURE:
-# Project Title
-
-Brief description.
-
-## Endpoints / Features
-- list them here
-
----
-
-```markpact:deps python
-...
 ```
 
-```markpact:file python path=app/main.py
-...complete code...
-```
+Generate ONLY the README.md content. Start with # Title.
+REMEMBER: Close ALL code blocks with ```"""
 
-```markpact:run python
-...
-```
 
-Generate ONLY the README content. Start with # Title."""
+def _fix_unclosed_blocks(content: str) -> str:
+    """Fix unclosed code blocks in generated content."""
+    lines = content.split('\n')
+    in_code_block = False
+    last_code_start = -1
+    
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith('```') and not in_code_block:
+            in_code_block = True
+            last_code_start = i
+        elif stripped == '```' and in_code_block:
+            in_code_block = False
+    
+    # If still in a code block, close it
+    if in_code_block:
+        lines.append('```')
+    
+    return '\n'.join(lines)
 
 
 def generate_contract(
@@ -133,18 +175,37 @@ def generate_contract(
     if config.api_base:
         litellm.api_base = config.api_base
     
+    # Set API key for the provider
+    if config.api_key:
+        # LiteLLM uses different env vars for different providers
+        if "openrouter" in config.model.lower():
+            os.environ["OPENROUTER_API_KEY"] = config.api_key
+        elif "openai" in config.model.lower() or config.model.startswith("gpt"):
+            os.environ["OPENAI_API_KEY"] = config.api_key
+        elif "anthropic" in config.model.lower() or "claude" in config.model.lower():
+            os.environ["ANTHROPIC_API_KEY"] = config.api_key
+        elif "groq" in config.model.lower():
+            os.environ["GROQ_API_KEY"] = config.api_key
+    
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": f"Generate a Markpact README for:\n\n{prompt}"},
     ]
     
     try:
-        response = litellm.completion(
-            model=config.model,
-            messages=messages,
-            temperature=config.temperature,
-            max_tokens=config.max_tokens,
-        )
+        # Build completion kwargs
+        completion_kwargs = {
+            "model": config.model,
+            "messages": messages,
+            "temperature": config.temperature,
+            "max_tokens": config.max_tokens,
+        }
+        
+        # Add API key directly if provided
+        if config.api_key:
+            completion_kwargs["api_key"] = config.api_key
+        
+        response = litellm.completion(**completion_kwargs)
         
         content = response.choices[0].message.content
         
@@ -156,7 +217,12 @@ def generate_contract(
         if content.endswith("```"):
             content = content[:-3]
         
-        return content.strip()
+        content = content.strip()
+        
+        # Fix unclosed code blocks - ensure last markpact block is closed
+        content = _fix_unclosed_blocks(content)
+        
+        return content
         
     except Exception as e:
         raise RuntimeError(f"Failed to generate contract: {e}") from e
@@ -184,12 +250,29 @@ def save_contract(content: str, output_path: Path, verbose: bool = False) -> Pat
 
 # Example prompts for testing
 EXAMPLE_PROMPTS = {
-    "todo-api": "REST API do zarządzania zadaniami (todo) z SQLite i pełnym CRUD. FastAPI + SQLAlchemy.",
-    "blog-api": "API bloga z postami i komentarzami. Endpoints: GET/POST /posts, GET/POST /posts/{id}/comments.",
-    "url-shortener": "Skracacz URL z FastAPI. POST /shorten z URL, GET /{code} przekierowuje na oryginalny URL.",
-    "weather-cli": "CLI do sprawdzania pogody. Używa requests i typer. Pobiera dane z wttr.in.",
-    "file-server": "Prosty serwer plików z FastAPI. Upload, download, lista plików. Przechowuje w ./uploads/",
-    "calculator-api": "Kalkulator REST API. Endpoints: POST /add, /subtract, /multiply, /divide z JSON body.",
+    # REST APIs
+    "todo-api": "REST API do zarządzania zadaniami (todo) z SQLite i pełnym CRUD. FastAPI + SQLAlchemy. Endpoints: GET/POST/PUT/DELETE /tasks",
+    "blog-api": "API bloga z postami i komentarzami. FastAPI + SQLite. Endpoints: GET/POST /posts, GET/POST /posts/{id}/comments, DELETE /posts/{id}",
+    "url-shortener": "Skracacz URL z FastAPI i SQLite. POST /shorten przyjmuje {url}, zwraca {short_url}. GET /{code} przekierowuje 301.",
+    "user-auth": "API autentykacji użytkowników. FastAPI + SQLite + passlib. POST /register, POST /login (zwraca JWT), GET /me (wymaga tokena)",
+    "notes-api": "API do notatek z tagami. FastAPI + SQLite. CRUD dla /notes, filtrowanie po tagach, wyszukiwanie pełnotekstowe",
+    "inventory-api": "API do zarządzania magazynem. FastAPI + SQLite. Produkty, kategorie, stany magazynowe, historia zmian",
+    
+    # Utilities
+    "calculator-api": "Kalkulator REST API. FastAPI. Endpoints: POST /calculate z {operation, a, b}. Obsługa +, -, *, /, sqrt, pow",
+    "file-server": "Serwer plików z FastAPI. POST /upload (multipart), GET /files (lista), GET /files/{name} (download), DELETE /files/{name}",
+    "image-resize": "API do zmiany rozmiaru obrazów. FastAPI + Pillow. POST /resize z obrazem i wymiarami, zwraca przeskalowany obraz",
+    "qr-generator": "Generator kodów QR. FastAPI + qrcode. POST /generate z {text}, zwraca obraz PNG kodu QR",
+    
+    # CLI tools
+    "weather-cli": "CLI do sprawdzania pogody. Typer + requests. Pobiera dane z wttr.in. Kolorowy output z rich.",
+    "file-organizer": "CLI do organizacji plików. Typer + rich. Sortuje pliki wg rozszerzenia do podfolderów.",
+    "csv-analyzer": "CLI do analizy plików CSV. Typer + pandas + rich. Statystyki, filtrowanie, eksport.",
+    
+    # Web apps
+    "chat-websocket": "Prosty chat WebSocket. FastAPI + websockets. Endpoint /ws dla połączeń, broadcast wiadomości.",
+    "pastebin": "Pastebin clone. FastAPI + SQLite. POST /paste tworzy paste, GET /paste/{id} zwraca treść, syntax highlighting",
+    "link-checker": "API do sprawdzania linków. FastAPI + httpx. POST /check z {urls[]}, zwraca status każdego URL",
 }
 
 

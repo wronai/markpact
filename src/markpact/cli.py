@@ -123,6 +123,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="List available example prompts")
     parser.add_argument("--example", "-e", metavar="NAME",
                         help="Use example prompt by name (see --list-examples)")
+    parser.add_argument("--run", "-r", action="store_true",
+                        help="Run immediately after generating (with --prompt or --example)")
+    parser.add_argument("--docker", action="store_true",
+                        help="Run in Docker container (isolated sandbox)")
 
     args = parser.parse_args(argv)
     
@@ -179,18 +183,17 @@ def main(argv: list[str] | None = None) -> int:
         output_path.write_text(content)
         
         print(f"[markpact] Generated contract saved to: {output_path}")
-        print(f"[markpact] Run with: markpact {output_path}")
         
-        # If --dry-run not set and user wants to run immediately
-        if not args.dry_run and args.readme != "README.md":
+        # If --run flag is set, continue to execute the generated contract
+        if args.run:
+            print(f"[markpact] Running generated contract...")
+            args.readme = str(output_path)
+            # Fall through to execution
+        else:
+            print(f"[markpact] Run with: markpact {output_path}")
+            if args.docker:
+                print(f"[markpact] Or with Docker: markpact {output_path} --docker")
             return 0
-        
-        # Continue to execute if no explicit output was set
-        if args.output:
-            return 0
-        
-        # Use generated content for execution
-        args.readme = str(output_path)
     
     readme = Path(args.readme)
 
@@ -266,6 +269,27 @@ def main(argv: list[str] | None = None) -> int:
         elif block.kind == "run":
             run_command = block.body
 
+    # Docker mode
+    if args.docker:
+        from .docker_runner import generate_dockerfile, build_and_run_docker, check_docker_available
+        
+        if not check_docker_available():
+            print("[markpact] ERROR: Docker is not available. Install Docker first.", file=sys.stderr)
+            return 1
+        
+        if args.dry_run:
+            print(f"[markpact] Would build and run Docker container")
+            print(f"[markpact] Deps: {', '.join(deps)}")
+            print(f"[markpact] Run: {run_command}")
+            return 0
+        
+        # Generate Dockerfile
+        generate_dockerfile(sandbox.path, deps, run_command.strip() if run_command else "python -m http.server 8000")
+        
+        # Build and run
+        return build_and_run_docker(sandbox.path, verbose=verbose)
+    
+    # Normal mode
     if deps:
         if args.dry_run:
             print(f"[markpact] Would install: {', '.join(deps)}")
