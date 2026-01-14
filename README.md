@@ -93,6 +93,14 @@ Obsługiwane rejestry: **PyPI**, **npm**, **Docker Hub**, **GitHub Packages**, *
 | [Kivy Mobile](examples/kivy-mobile/) | Aplikacja mobilna | `markpact examples/kivy-mobile/README.md` |
 | [Electron Desktop](examples/electron-desktop/) | Aplikacja desktopowa | `markpact examples/electron-desktop/README.md` |
 | [Markdown Converter](examples/markdown-converter/) | Konwersja zwykłego MD | `markpact examples/markdown-converter/sample.md --convert` |
+| [Go HTTP API](examples/go-http-api/) | REST API w Go | `markpact examples/go-http-api/README.md` |
+| [Node Express API](examples/node-express-api/) | REST API w Node.js | `markpact examples/node-express-api/README.md` |
+| [Static Frontend](examples/static-frontend/) | Statyczny HTML/CSS/JS | `markpact examples/static-frontend/README.md` |
+| [Python Typer CLI](examples/python-typer-cli/) | CLI w Python (Typer) | `markpact examples/python-typer-cli/README.md` |
+| [Rust Axum API](examples/rust-axum-api/) | REST API w Rust | `markpact examples/rust-axum-api/README.md` |
+| [PHP CLI](examples/php-cli/) | CLI w PHP | `markpact examples/php-cli/README.md` |
+| [React TypeScript SPA](examples/react-typescript-spa/) | SPA React + TS | `markpact examples/react-typescript-spa/README.md` |
+| [TypeScript Node API](examples/typescript-node-api/) | REST API w TS (Node) | `markpact examples/typescript-node-api/README.md` |
 
 ## 🔄 Konwersja zwykłego Markdown
 

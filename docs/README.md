@@ -184,6 +184,26 @@ uvicorn app.main:app --port 8000
 3. Instalacja zależności (`markpact:deps`)
 4. Uruchomienie komendy (`markpact:run`)
 
+## Przykłady
+
+Zobacz `examples/` dla kompletnych projektów:
+
+| Przykład | Technologie | Uruchomienie |
+|----------|-------------|--------------|
+| FastAPI Todo | Python, FastAPI, SQLite | `markpact examples/fastapi-todo/README.md` |
+| Flask Blog | Python, Flask, Jinja2 | `markpact examples/flask-blog/README.md` |
+| Go HTTP API | Go, net/http | `markpact examples/go-http-api/README.md` |
+| Node Express API | Node.js, Express | `markpact examples/node-express-api/README.md` |
+| Rust Axum API | Rust, Axum | `markpact examples/rust-axum-api/README.md` |
+| React TypeScript SPA | React, TypeScript, Vite | `markpact examples/react-typescript-spa/README.md` |
+| TypeScript Node API | TypeScript, Express | `markpact examples/typescript-node-api/README.md` |
+| PHP CLI | PHP | `markpact examples/php-cli/README.md` |
+| Static Frontend | HTML, CSS, JS | `markpact examples/static-frontend/README.md` |
+| Python Typer CLI | Python, Typer | `markpact examples/python-typer-cli/README.md` |
+| Streamlit Dashboard | Python, Streamlit | `markpact examples/streamlit-dashboard/README.md` |
+| Kivy Mobile | Python, Kivy | `markpact examples/kivy-mobile/README.md` |
+| Electron Desktop | Node.js, Electron | `markpact examples/electron-desktop/README.md` |
+
 ## Publikacja do rejestrów
 
 Markpact umożliwia publikację artefaktów do różnych rejestrów bezpośrednio z README.

@@ -28,6 +28,9 @@ markpact examples/<nazwa>/README.md
 | [static-frontend](static-frontend/) | Frontend | Statyczny frontend (HTML/CSS/JS) | HTML, CSS, JS |
 | [python-typer-cli](python-typer-cli/) | CLI | CLI w Python (Typer) | Typer, Rich |
 | [rust-axum-api](rust-axum-api/) | Web API | Minimalne REST API w Rust | Rust, Axum |
+| [php-cli](php-cli/) | CLI | CLI w PHP | PHP |
+| [react-typescript-spa](react-typescript-spa/) | Frontend | SPA React + TypeScript | React, TypeScript, Vite |
+| [typescript-node-api](typescript-node-api/) | Web API | REST API w TypeScript (Node) | TypeScript, Express |
 | [pypi-publish](pypi-publish/) | Publish | Publikacja paczki Python do PyPI | `--publish`, `--bump` |
 | [npm-publish](npm-publish/) | Publish | Publikacja paczki Node.js do npm | `--publish`, `--registry` |
 | [docker-publish](docker-publish/) | Publish | Budowanie i publikacja obrazu Docker | `--publish`, Docker |
@@ -83,6 +86,9 @@ komenda uruchomieniowa
 | static-frontend | 8088 |
 | python-typer-cli | (CLI) |
 | rust-axum-api | 8081 |
+| php-cli | (CLI) |
+| react-typescript-spa | 3000 |
+| typescript-node-api | 4000 |
 
 Zmiana portu:
 ```bash
