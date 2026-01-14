@@ -36,8 +36,8 @@ password = pypi-xxxx
 
 ```markpact:publish
 registry = pypi
-name = my-example-package
-version = 0.1.0
+name = markpact-example-pypi
+version = 0.1.1
 description = Example package published with markpact
 author = Your Name
 license = MIT
@@ -45,7 +45,7 @@ keywords = example, markpact, demo
 repository = https://github.com/your/repo
 ```
 
-```markpact:file python path=my_example_package/__init__.py
+```markpact:file python path=markpact_example_pypi/__init__.py
 """Example package published with markpact"""
 
 __version__ = "0.1.0"
@@ -59,7 +59,7 @@ def add(a: int, b: int) -> int:
     return a + b
 ```
 
-```markpact:file python path=my_example_package/cli.py
+```markpact:file python path=markpact_example_pypi/cli.py
 """CLI for example package"""
 
 import argparse

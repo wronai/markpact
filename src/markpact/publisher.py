@@ -131,6 +131,9 @@ def infer_publish_config(
         registry = "unknown"
 
     base_name = _slugify(title)
+    # Try to make name more unique to avoid PyPI collisions
+    if not base_name.startswith("markpact-"):
+        base_name = f"markpact-{base_name}"
     default_author = os.environ.get("MARKPACT_AUTHOR") or os.environ.get("GIT_AUTHOR_NAME") or os.environ.get("USER") or ""
 
     # Reasonable defaults per registry
@@ -381,11 +384,65 @@ def publish_pypi(
     
     if verbose:
         print(f"[markpact] Publishing {config.name} v{config.version} to {'TestPyPI' if test else 'PyPI'}...")
+
+    # Validate package name: PyPI normalizes underscores to hyphens; warn if underscores are present
+    if "_" in config.name:
+        if verbose:
+            print(f"[markpact] NOTE: Package name '{config.name}' contains underscores. PyPI normalizes them to hyphens.")
+        # Normalize to hyphens for consistency
+        config.name = config.name.replace("_", "-")
+        if verbose:
+            print(f"[markpact] Normalized name to: {config.name}")
     
-    # Generate pyproject.toml if not exists
-    pyproject = sandbox.path / "pyproject.toml"
-    if not pyproject.exists():
-        generate_pyproject_toml(config, sandbox)
+    # Generate pyproject.toml (always ensure it reflects current config)
+    generate_pyproject_toml(config, sandbox)
+
+    # Auto-install missing build backend if needed (e.g., hatchling)
+    pyproject_path = sandbox.path / "pyproject.toml"
+    if pyproject_path.exists():
+        build_backend = None
+        # Try to parse TOML (Python 3.11+ has tomllib; fallback to tomli or regex)
+        try:
+            import tomllib
+            with pyproject_path.open("rb") as f:
+                data = tomllib.load(f)
+            build_backend = data.get("build-system", {}).get("build-backend")
+        except ImportError:
+            try:
+                import tomli
+                with pyproject_path.open("rb") as f:
+                    data = tomli.load(f)
+                build_backend = data.get("build-system", {}).get("build-backend")
+            except ImportError:
+                # Fallback: simple regex for build-backend
+                content = pyproject_path.read_text()
+                m = re.search(r"build-backend\s*=\s*['\"]([^'\"]+)['\"]", content)
+                if m:
+                    build_backend = m.group(1)
+        except Exception:
+            # If TOML parsing fails, fallback to regex
+            try:
+                content = pyproject_path.read_text()
+                m = re.search(r"build-backend\s*=\s*['\"]([^'\"]+)['\"]", content)
+                if m:
+                    build_backend = m.group(1)
+            except Exception:
+                pass
+
+        if build_backend == "hatchling.build":
+            try:
+                import hatchling
+            except ImportError:
+                if verbose:
+                    print("[markpact] Installing missing build backend: hatchling")
+                install_result = subprocess.run(
+                    [sys.executable, "-m", "pip", "install", "hatchling"],
+                    capture_output=True,
+                    text=True,
+                )
+                if install_result.returncode != 0 and verbose:
+                    print("[markpact] WARNING: Failed to auto-install hatchling:")
+                    print(install_result.stderr[-500:] if install_result.stderr else install_result.stdout[-500:])
     
     # Create README.md in sandbox if not exists
     readme = sandbox.path / "README.md"
@@ -397,42 +454,146 @@ def publish_pypi(
         print("[markpact] Building package...")
     
     build_result = subprocess.run(
-        [sys.executable, "-m", "build"],
+        [sys.executable, "-m", "build", "--no-isolation"],
         cwd=sandbox.path,
         capture_output=True,
         text=True,
     )
     
     if build_result.returncode != 0:
+        if verbose:
+            print("[markpact] Build stdout/stderr:")
+            print("--- STDOUT ---")
+            print(build_result.stdout[-1000:] if build_result.stdout else "(empty)")
+            print("--- STDERR ---")
+            print(build_result.stderr[-1000:] if build_result.stderr else "(empty)")
+            print("--- END ---")
+            # Common hint for missing build tool
+            if "No module named 'build'" in (build_result.stdout or "") or "No module named 'build'" in (build_result.stderr or ""):
+                print("[markpact] HINT: 'build' package not found. Install it with: pip install build")
+            elif "Cannot import 'hatchling.build'" in (build_result.stdout or "") or "Backend 'hatchling.build' is not available" in (build_result.stdout or ""):
+                print("[markpact] HINT: 'hatchling' backend not found. Install it with: pip install hatchling")
         return PublishResult(
             success=False,
             registry="pypi",
-            message=f"Build failed: {build_result.stderr[:200]}",
+            message=f"Build failed: {_format_subprocess_failure(build_result)}",
             version=config.version,
         )
     
     # Upload to PyPI
     if verbose:
         print("[markpact] Uploading to PyPI...")
+
+    env = os.environ.copy()
+    env.setdefault("TWINE_NON_INTERACTIVE", "1")
+
+    token_env = "MARKPACT_TESTPYPI_TOKEN" if test else "MARKPACT_PYPI_TOKEN"
+    token = env.get(token_env, "").strip()
+    if token:
+        env.setdefault("TWINE_USERNAME", "__token__")
+        env.setdefault("TWINE_PASSWORD", token)
+
+    # Early hint if no credentials are present
+    has_env_creds = bool(env.get("TWINE_USERNAME")) and bool(env.get("TWINE_PASSWORD"))
+    pypirc_path = Path.home().joinpath(".pypirc")
+    has_pypirc = pypirc_path.exists()
+
+    if has_pypirc and verbose:
+        print(f"[markpact] Found ~/.pypirc at: {pypirc_path}")
+
+    # Validate ~/.pypirc format (common issue: indented username/password)
+    if has_pypirc:
+        try:
+            import configparser
+
+            cp = configparser.ConfigParser()
+            cp.read(pypirc_path)
+            section = "testpypi" if test else "pypi"
+            if section not in cp:
+                if verbose:
+                    print(f"[markpact] NOTE: ~/.pypirc exists but section [{section}] is missing")
+            else:
+                u = (cp.get(section, "username", fallback="") or "").strip()
+                p = (cp.get(section, "password", fallback="") or "").strip()
+                if verbose:
+                    print(f"[markpact] ~/.pypirc section [{section}] parsed:")
+                    print(f"    username = {u}")
+                    # Mask password for logs
+                    masked = (p[:8] + "...") if len(p) > 8 else ("***" if p else "(empty)")
+                    print(f"    password = {masked}")
+                if not u or not p:
+                    print(
+                        f"[markpact] NOTE: ~/.pypirc section [{section}] is missing username/password. "
+                        f"Ensure the INI keys are NOT indented (no leading spaces)."
+                    )
+        except Exception as e:
+            if verbose:
+                print(f"[markpact] WARNING: Failed to parse ~/.pypirc: {e}")
+            # Don't block publishing on parse issues; twine may still handle it
+            pass
+
+    if not has_env_creds and not has_pypirc:
+        if verbose:
+            where = "TestPyPI" if test else "PyPI"
+            print(f"[markpact] NOTE: No Twine credentials detected for {where}.")
+            print(f"[markpact] TIP: set {token_env}=pypi-... or configure ~/.pypirc")
     
     upload_cmd = [sys.executable, "-m", "twine", "upload"]
     if test:
         upload_cmd.extend(["--repository", "testpypi"])
+
+    # Explicitly pass config file if present (avoids HOME/env edge cases)
+    if has_pypirc:
+        upload_cmd.extend(["--config-file", str(pypirc_path)])
+
+    # Verbose twine output for diagnostics
+    if verbose:
+        upload_cmd.append("--verbose")
+
     upload_cmd.append("dist/*")
-    
+
+    if verbose:
+        print(f"[markpact] Running twine command:")
+        print(f"    {' '.join(upload_cmd)}")
+
     upload_result = subprocess.run(
         " ".join(upload_cmd),
         shell=True,
         cwd=sandbox.path,
         capture_output=True,
         text=True,
+        env=env,
     )
     
     if upload_result.returncode != 0:
+        where = "TestPyPI" if test else "PyPI"
+        if verbose:
+            print("[markpact] Full twine stdout/stderr for debugging:")
+            print("--- STDOUT ---")
+            print(upload_result.stdout[-2000:] if upload_result.stdout else "(empty)")
+            print("--- STDERR ---")
+            print(upload_result.stderr[-2000:] if upload_result.stderr else "(empty)")
+            print("--- END ---")
+
+        # Detect common PyPI errors and provide actionable hints
+        payload = _format_subprocess_failure(upload_result)
+        stdout = (upload_result.stdout or "")
+        hint = f"Hint: configure ~/.pypirc or set TWINE_USERNAME/TWINE_PASSWORD (or {token_env}).\nTarget: {where}"
+        if "File already exists" in payload or "file-name-reuse" in payload or "File already exists" in stdout:
+            hint = (
+                f"Hint: a file for this version already exists on {where}. "
+                f"Try bumping the version with --bump patch/minor/major or change version in the markpact:publish block."
+            )
+        elif "too similar to an existing project" in payload or "too similar to an existing project" in stdout:
+            hint = (
+                f"Hint: the package name is too similar to an existing project on {where}. "
+                f"Change the 'name =' in the markpact:publish block to something more unique."
+            )
+
         return PublishResult(
             success=False,
             registry="pypi",
-            message=f"Upload failed: {_format_subprocess_failure(upload_result)}\nHint: configure ~/.pypirc or TWINE_USERNAME/TWINE_PASSWORD",
+            message=f"Upload failed: {payload}\n{hint}",
             version=config.version,
         )
     
