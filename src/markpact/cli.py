@@ -12,11 +12,88 @@ from .runner import install_deps, run_cmd
 from .sandbox import Sandbox
 
 
+def handle_config(args) -> int:
+    """Handle config subcommand"""
+    from .config import (
+        load_env, save_env, init_env, set_model, set_api_key, set_api_base,
+        apply_preset, show_config, list_providers, get_env_path, PROVIDER_PRESETS
+    )
+    
+    # Init config if requested
+    if args.init:
+        path, created = init_env(force=args.force)
+        if created:
+            print(f"[markpact] Created config file: {path}")
+        else:
+            print(f"[markpact] Config file already exists: {path}")
+            print(f"[markpact] Use --force to overwrite")
+        return 0
+    
+    # List providers
+    if args.list_providers:
+        print(list_providers())
+        return 0
+    
+    # Apply preset
+    if args.provider:
+        if args.provider not in PROVIDER_PRESETS:
+            print(f"[markpact] ERROR: Unknown provider '{args.provider}'", file=sys.stderr)
+            print(f"[markpact] Available: {', '.join(PROVIDER_PRESETS.keys())}", file=sys.stderr)
+            return 1
+        
+        config = apply_preset(args.provider, args.set_api_key)
+        print(f"[markpact] Applied preset: {args.provider}")
+        if args.provider != "ollama" and not args.set_api_key:
+            print(f"[markpact] NOTE: Don't forget to set API key with: markpact config --api-key YOUR_KEY")
+        return 0
+    
+    # Set individual values
+    if args.set_model:
+        set_model(args.set_model)
+        print(f"[markpact] Model set to: {args.set_model}")
+        return 0
+    
+    if args.set_api_key:
+        set_api_key(args.set_api_key)
+        print(f"[markpact] API key updated")
+        return 0
+    
+    if args.set_api_base:
+        set_api_base(args.set_api_base)
+        print(f"[markpact] API base set to: {args.set_api_base}")
+        return 0
+    
+    # Show config (default)
+    env_path = get_env_path()
+    if not env_path.exists():
+        print(f"[markpact] No config file found at: {env_path}")
+        print(f"[markpact] Run 'markpact config --init' to create one")
+        print()
+    
+    print(show_config())
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="markpact",
         description="Executable Markdown Runtime – run projects from README.md",
     )
+    
+    # Subcommands
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+    
+    # Config subcommand
+    config_parser = subparsers.add_parser("config", help="Manage LLM configuration")
+    config_parser.add_argument("--init", action="store_true", help="Initialize .env config file")
+    config_parser.add_argument("--force", action="store_true", help="Overwrite existing config")
+    config_parser.add_argument("--provider", metavar="NAME", help="Apply provider preset (ollama, openrouter, openai, anthropic, groq)")
+    config_parser.add_argument("--list-providers", action="store_true", help="List available provider presets")
+    config_parser.add_argument("--model", dest="set_model", metavar="MODEL", help="Set LLM model")
+    config_parser.add_argument("--api-key", dest="set_api_key", metavar="KEY", help="Set API key")
+    config_parser.add_argument("--api-base", dest="set_api_base", metavar="URL", help="Set API base URL")
+    
+    # Main parser arguments
     parser.add_argument("readme", nargs="?", default="README.md", help="Path to README.md")
     parser.add_argument("--sandbox", "-s", help="Sandbox directory (default: ./sandbox)")
     parser.add_argument("--dry-run", "-n", action="store_true", help="Show what would be done")
@@ -37,15 +114,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", "-o", metavar="FILE",
                         help="Output file for generated contract (default: README.md)")
     parser.add_argument("--model", "-m", metavar="MODEL",
-                        help="LLM model to use (default: ollama/qwen2.5-coder:7b)")
+                        help="LLM model to use (overrides config)")
     parser.add_argument("--api-base", metavar="URL",
-                        help="API base URL (default: http://localhost:11434)")
+                        help="API base URL (overrides config)")
+    parser.add_argument("--api-key", metavar="KEY",
+                        help="API key (overrides config)")
     parser.add_argument("--list-examples", action="store_true",
                         help="List available example prompts")
     parser.add_argument("--example", "-e", metavar="NAME",
                         help="Use example prompt by name (see --list-examples)")
 
     args = parser.parse_args(argv)
+    
+    # Handle config subcommand
+    if args.command == "config":
+        return handle_config(args)
+    
     verbose = not args.quiet
     
     # Handle --list-examples
@@ -61,18 +145,25 @@ def main(argv: list[str] | None = None) -> int:
     if args.prompt or args.example:
         try:
             from .generator import generate_contract, GeneratorConfig, get_example_prompt
+            from .config import load_env, init_env
         except ImportError:
             print("[markpact] ERROR: litellm not installed. Run: pip install markpact[llm]", file=sys.stderr)
             return 1
         
+        # Auto-init config on first use
+        init_env(force=False)
+        
         prompt = args.prompt or get_example_prompt(args.example)
         
-        # Build config from args
-        config = GeneratorConfig.from_env()
-        if args.model:
-            config.model = args.model
-        if args.api_base:
-            config.api_base = args.api_base
+        # Build config from .env + args overrides
+        env_config = load_env()
+        config = GeneratorConfig(
+            model=args.model or env_config.get("MARKPACT_MODEL", "ollama/qwen2.5-coder:14b"),
+            api_base=args.api_base or env_config.get("MARKPACT_API_BASE", "http://localhost:11434"),
+            api_key=getattr(args, 'api_key', None) or env_config.get("MARKPACT_API_KEY", ""),
+            temperature=float(env_config.get("MARKPACT_TEMPERATURE", "0.7")),
+            max_tokens=int(env_config.get("MARKPACT_MAX_TOKENS", "4096")),
+        )
         
         print(f"[markpact] Generating contract with {config.model}...")
         print(f"[markpact] Prompt: {prompt[:80]}{'...' if len(prompt) > 80 else ''}")
