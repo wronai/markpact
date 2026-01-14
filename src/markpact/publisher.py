@@ -39,6 +39,239 @@ class PublishResult:
     url: str = ""
 
 
+def _slugify(name: str) -> str:
+    name = name.strip().lower()
+    name = re.sub(r"[^a-z0-9]+", "-", name)
+    name = re.sub(r"-+", "-", name).strip("-")
+    return name or "my-project"
+
+
+def _first_heading(markdown: str) -> str:
+    for line in markdown.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return "My Project"
+
+
+def _first_paragraph(markdown: str) -> str:
+    lines = markdown.splitlines()
+    started = False
+    buf: list[str] = []
+    for line in lines:
+        if line.startswith("# "):
+            started = True
+            continue
+        if not started:
+            continue
+        if line.strip() == "":
+            if buf:
+                break
+            continue
+        if line.startswith("## "):
+            break
+        buf.append(line.strip())
+    return " ".join(buf).strip()
+
+
+def _format_subprocess_failure(result: subprocess.CompletedProcess) -> str:
+    stderr = (result.stderr or "").strip()
+    stdout = (result.stdout or "").strip()
+    payload = stderr or stdout
+    if not payload:
+        return f"Command failed with exit code {result.returncode}"
+    return payload[:400]
+
+
+def infer_publish_config(
+    readme_path: Path,
+    markdown: str,
+    blocks: list[object],
+    run_command: str | None,
+) -> "PublishConfig":
+    """Infer a reasonable PublishConfig for READMEs without markpact:publish.
+
+    Heuristics:
+    - If package.json exists or there are JS/TS file blocks -> npm
+    - If Dockerfile exists or run command indicates a web service -> docker
+    - If pyproject/setup.py exists -> pypi
+    """
+    title = _first_heading(markdown)
+    description = _first_paragraph(markdown)
+
+    has_package_json = False
+    has_pyproject = False
+    has_dockerfile = False
+    has_js = False
+    has_python_pkg = False
+
+    # blocks are markpact.parser.Block, but keep it loose to avoid import cycles
+    for b in blocks:
+        kind = getattr(b, "kind", "")
+        path = getattr(b, "get_path", lambda: None)()
+        if kind == "file" and path:
+            lower = path.lower()
+            if lower.endswith("package.json"):
+                has_package_json = True
+            if lower.endswith("pyproject.toml") or lower.endswith("setup.py"):
+                has_pyproject = True
+            if lower.endswith("dockerfile"):
+                has_dockerfile = True
+            if lower.endswith((".js", ".ts", ".mjs", ".cjs")):
+                has_js = True
+            if lower.endswith("__init__.py"):
+                has_python_pkg = True
+
+    if has_package_json or has_js:
+        registry = "npm"
+    elif has_dockerfile or (run_command and any(x in run_command for x in ["uvicorn", "gunicorn", "flask run", "node ", "npm start"])):
+        registry = "docker"
+    elif has_pyproject or has_python_pkg:
+        registry = "pypi"
+    else:
+        registry = "unknown"
+
+    base_name = _slugify(title)
+    default_author = os.environ.get("MARKPACT_AUTHOR") or os.environ.get("GIT_AUTHOR_NAME") or os.environ.get("USER") or ""
+
+    # Reasonable defaults per registry
+    if registry == "docker":
+        docker_ns = os.environ.get("MARKPACT_DOCKER_NAMESPACE") or os.environ.get("DOCKER_USERNAME") or ""
+        name = f"{docker_ns}/{base_name}".strip("/") if docker_ns else base_name
+    elif registry == "npm":
+        npm_scope = os.environ.get("MARKPACT_NPM_SCOPE") or ""
+        name = f"@{npm_scope}/{base_name}" if npm_scope else base_name
+    else:
+        name = base_name
+
+    version = os.environ.get("MARKPACT_VERSION") or "0.1.0"
+
+    return PublishConfig(
+        registry=registry,
+        name=name,
+        version=version,
+        description=description,
+        author=default_author,
+        license=os.environ.get("MARKPACT_LICENSE", "MIT"),
+        repository=os.environ.get("MARKPACT_REPOSITORY", ""),
+        keywords=[],
+    )
+
+
+def prompt_publish_config(config: "PublishConfig") -> "PublishConfig":
+    """Interactively ask user for missing or important publish fields."""
+    print("[markpact] No markpact:publish block found. Let's create one interactively.")
+    print("[markpact] Press Enter to accept defaults.")
+
+    def ask(label: str, current: str) -> str:
+        value = input(f"{label} [{current}]: ").strip()
+        return value or current
+
+    config.registry = ask("Registry (pypi, pypi-test, npm, docker, github, ghcr)", config.registry)
+    config.name = ask("Package/Image name", config.name)
+    config.version = ask("Version", config.version)
+    config.description = ask("Description", config.description)
+    config.author = ask("Author", config.author)
+    config.license = ask("License", config.license)
+    config.repository = ask("Repository URL", config.repository)
+    kw = ask("Keywords (comma-separated)", ",".join(config.keywords) if config.keywords else "")
+    config.keywords = [k.strip() for k in kw.split(",") if k.strip()]
+    return config
+
+
+def ensure_publish_block_in_readme(readme_path: Path, config: "PublishConfig") -> None:
+    """Insert a markpact:publish block into README if none exists."""
+    text = readme_path.read_text()
+    if "```markpact:publish" in text:
+        return
+
+    lines: list[str] = [
+        "```markpact:publish\n",
+        f"registry = {config.registry}\n",
+        f"name = {config.name}\n",
+        f"version = {config.version}\n",
+        f"description = {config.description}\n",
+        f"author = {config.author}\n",
+        f"license = {config.license}\n",
+    ]
+    if config.repository:
+        lines.append(f"repository = {config.repository}\n")
+    if config.keywords:
+        lines.append(f"keywords = {', '.join(config.keywords)}\n")
+    lines.append("```\n\n")
+
+    block = "".join(lines)
+
+    # Insert before first markpact:deps if possible
+    m = re.search(r"^```markpact:deps\b", text, re.MULTILINE)
+    if m:
+        new_text = text[: m.start()] + block + text[m.start() :]
+    else:
+        new_text = text.rstrip() + "\n\n" + block
+    readme_path.write_text(new_text)
+
+
+def generate_publish_config_with_llm(markdown: str, verbose: bool = False) -> Optional["PublishConfig"]:
+    """Try to generate a publish config using LLM.
+
+    Requires optional dependency markpact[llm].
+    """
+    try:
+        from .generator import GeneratorConfig, litellm, LITELLM_AVAILABLE
+    except Exception:
+        return None
+
+    if not LITELLM_AVAILABLE:
+        return None
+
+    cfg = GeneratorConfig.from_env()
+    if cfg.api_base:
+        litellm.api_base = cfg.api_base
+    if cfg.api_key:
+        if "openrouter" in cfg.model.lower():
+            os.environ["OPENROUTER_API_KEY"] = cfg.api_key
+        elif "openai" in cfg.model.lower() or cfg.model.startswith("gpt"):
+            os.environ["OPENAI_API_KEY"] = cfg.api_key
+        elif "anthropic" in cfg.model.lower() or "claude" in cfg.model.lower():
+            os.environ["ANTHROPIC_API_KEY"] = cfg.api_key
+        elif "groq" in cfg.model.lower():
+            os.environ["GROQ_API_KEY"] = cfg.api_key
+
+    system = (
+        "You extract publishing metadata from a README. "
+        "Return ONLY a single markpact:publish codeblock. "
+        "Choose registry=\"docker\" for web services (uvicorn/gunicorn/flask/node server). "
+        "Choose registry=\"pypi\" for Python libraries. "
+        "Choose registry=\"npm\" for Node libraries. "
+        "Always include: registry, name, version, description, author, license."
+    )
+
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": markdown[:12000]},
+    ]
+
+    try:
+        resp = litellm.completion(
+            model=cfg.model,
+            messages=messages,
+            temperature=0.2,
+            max_tokens=512,
+        )
+        content = resp.choices[0].message.content
+    except Exception:
+        return None
+
+    m = re.search(r"```markpact:publish(?P<meta>[^\n]*)\n(?P<body>.*?)\n```", content, re.DOTALL)
+    if not m:
+        return None
+    meta = (m.group("meta") or "").strip()
+    body = (m.group("body") or "").strip()
+    try:
+        return parse_publish_block(body, meta)
+    except Exception:
+        return None
+
+
 def bump_version(version: str, bump_type: str = "patch") -> str:
     """Bump semantic version.
     
@@ -199,7 +432,7 @@ def publish_pypi(
         return PublishResult(
             success=False,
             registry="pypi",
-            message=f"Upload failed: {upload_result.stderr[:200]}",
+            message=f"Upload failed: {_format_subprocess_failure(upload_result)}\nHint: configure ~/.pypirc or TWINE_USERNAME/TWINE_PASSWORD",
             version=config.version,
         )
     
@@ -278,7 +511,7 @@ def publish_npm(
         return PublishResult(
             success=False,
             registry="npm",
-            message=f"Publish failed: {result.stderr[:200]}",
+            message=f"Publish failed: {_format_subprocess_failure(result)}\nHint: run npm login and ensure package name is valid",
             version=config.version,
         )
     
@@ -350,7 +583,7 @@ def publish_docker(
         return PublishResult(
             success=False,
             registry="docker",
-            message=f"Build failed: {build_result.stderr[:200]}",
+            message=f"Build failed: {_format_subprocess_failure(build_result)}",
             version=config.version,
         )
     
@@ -369,7 +602,7 @@ def publish_docker(
         return PublishResult(
             success=False,
             registry="docker",
-            message=f"Push failed: {push_result.stderr[:200]}",
+            message=f"Push failed: {_format_subprocess_failure(push_result)}\nHint: docker login and ensure repository exists",
             version=config.version,
         )
     

@@ -146,6 +146,12 @@ def main(argv: list[str] | None = None) -> int:
                         help="Bump version before publishing")
     parser.add_argument("--registry", metavar="NAME",
                         help="Override registry (pypi, npm, docker, github, ghcr)")
+    parser.add_argument("--publish-llm", action="store_true",
+                        help="Try to generate missing publish config using LLM")
+    parser.add_argument("--no-interactive", action="store_true",
+                        help="Disable interactive prompts when publish config is incomplete")
+    parser.add_argument("--yes", action="store_true",
+                        help="Assume defaults for missing publish config (non-interactive)")
 
     args = parser.parse_args(args_list)
     
@@ -262,7 +268,8 @@ def main(argv: list[str] | None = None) -> int:
     deps: list[str] = []
     run_command: str | None = None
     test_blocks: list[tuple[str, str]] = []  # (meta, body)
-    publish_config_block: str | None = None
+    publish_config_block: tuple[str, str] | None = None
+    had_publish_block = False
 
     for block in blocks:
         if block.kind == "bootstrap":
@@ -291,21 +298,49 @@ def main(argv: list[str] | None = None) -> int:
         
         elif block.kind == "publish":
             publish_config_block = (block.meta, block.body)
+            had_publish_block = True
 
     # Publish mode
     if args.publish:
-        from .publisher import parse_publish_block, publish, update_version_in_readme
+        from .publisher import (
+            ensure_publish_block_in_readme,
+            infer_publish_config,
+            parse_publish_block,
+            prompt_publish_config,
+            publish,
+            update_version_in_readme,
+        )
         
-        if not publish_config_block:
-            print("[markpact] ERROR: No markpact:publish block found in README", file=sys.stderr)
-            return 1
-        
-        meta, body = publish_config_block
-        config = parse_publish_block(body, meta)
+        if publish_config_block:
+            meta, body = publish_config_block
+            config = parse_publish_block(body, meta)
+        else:
+            config = None
+            if args.publish_llm:
+                try:
+                    from .publisher import generate_publish_config_with_llm
+                    config = generate_publish_config_with_llm(text_to_parse, verbose=verbose)
+                except Exception as e:
+                    if verbose:
+                        print(f"[markpact] LLM publish config generation failed: {e}")
+                    config = None
+            
+            if config is None:
+                config = infer_publish_config(readme_path=readme, markdown=text_to_parse, blocks=blocks, run_command=run_command)
+            
+            if (not args.no_interactive) and (not args.yes) and sys.stdin.isatty():
+                config = prompt_publish_config(config)
+            elif config.registry == "unknown" and not args.registry:
+                print("[markpact] ERROR: Cannot infer publish registry. Add markpact:publish block or pass --registry", file=sys.stderr)
+                return 1
         
         # Override registry if specified
         if args.registry:
             config.registry = args.registry
+
+        # Ensure requirements.txt exists for docker publish if deps are provided
+        if deps and not args.dry_run:
+            sandbox.write_requirements(deps)
         
         if args.dry_run:
             print(f"[markpact] Would publish {config.name} v{config.version} to {config.registry}")
@@ -325,8 +360,13 @@ def main(argv: list[str] | None = None) -> int:
             
             # Update version in README if bumped
             if args.bump:
-                update_version_in_readme(readme, result.version)
-                print(f"[markpact] Updated version in {readme}")
+                if had_publish_block:
+                    if update_version_in_readme(readme, result.version):
+                        print(f"[markpact] Updated version in {readme}")
+                else:
+                    ensure_publish_block_in_readme(readme, config)
+                    if update_version_in_readme(readme, result.version):
+                        print(f"[markpact] Updated version in {readme}")
             
             return 0
         else:

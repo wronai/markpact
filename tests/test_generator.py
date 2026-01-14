@@ -15,7 +15,7 @@ from markpact.generator import (
 def test_generator_config_defaults():
     """Test default configuration values"""
     config = GeneratorConfig()
-    assert config.model == "ollama/qwen2.5-coder:7b"
+    assert config.model == "ollama/qwen2.5-coder:14b"
     assert config.temperature == 0.7
     assert config.max_tokens == 4096
 

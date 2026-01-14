@@ -27,7 +27,8 @@ def test_cli_version(capsys):
         assert e.code == 0
     
     captured = capsys.readouterr()
-    assert "0.1.0" in captured.out
+    from markpact import __version__
+    assert __version__ in captured.out
 
 
 def test_cli_file_not_found(capsys):

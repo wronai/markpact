@@ -36,10 +36,10 @@ dev: ## Install dev dependencies
 	$(PYTHON) -m pip install -e ".[dev]"
 
 test: ## Run tests
-	$(PYTHON) -m pytest tests/ -v
+	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src $(PYTHON) -m pytest tests/ -v
 
 test-cov: ## Run tests with coverage
-	$(PYTHON) -m pytest tests/ -v --cov=src/markpact --cov-report=term-missing
+	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src $(PYTHON) -m pytest tests/ -v --cov=src/markpact --cov-report=term-missing
 
 lint: ## Run linter
 	$(PYTHON) -m ruff check src/ tests/
