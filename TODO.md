@@ -1,0 +1,88 @@
+# TODO – Markpact
+
+## 🎯 Priorytety
+
+### P0 – Krytyczne
+- [ ] Testy jednostkowe dla parsera codeblocków
+- [ ] Walidacja `path=` (zabezpieczenie przed path traversal `../`)
+
+### P1 – Ważne
+- [ ] Obsługa `markpact:deps node` (generowanie `package.json`, `npm install`)
+- [ ] Obsługa `markpact:deps system` (apt/brew)
+- [ ] Flaga `--dry-run` – podgląd bez wykonywania
+- [ ] Lepsze komunikaty błędów (kolorowe, z numerem linii w README)
+
+### P2 – Nice to have
+- [ ] `markpact:config` – ustawienia projektu (port, sandbox path, env vars)
+- [ ] `markpact:test` – uruchamianie testów po `markpact:run`
+- [ ] `markpact:ignore` – bloki ignorowane przez runtime
+- [ ] Watch mode (`--watch`) – przeładowanie przy zmianie README
+- [ ] Wsparcie dla Windows (ścieżki `.venv\Scripts\`)
+
+---
+
+## 🔧 Minimalizacja kodu bootstrap
+
+### Obecny stan: ~47 linii
+
+### Możliwe redukcje
+
+| Zmiana | Oszczędność | Uwagi |
+|--------|-------------|-------|
+| Usunięcie `MARKPACT_NO_VENV` | ~2 linie | Mniej elastyczności |
+| Inline `run()` w `main()` | ~5 linii | Gorsza czytelność |
+| Usunięcie pretty-print `[markpact]` | ~3 linie | Gorszy UX |
+| Jeden regex `p[1]` bez walidacji | ~2 linie | Mniej bezpieczne |
+| Lambda zamiast `run()` | ~3 linie | Mniej czytelne |
+
+### Wersja ultra-minimalna (~30 linii)
+
+```python
+#!/usr/bin/env python3
+import os,re,subprocess,sys;from pathlib import Path
+R,S=Path(sys.argv[1] if len(sys.argv)>1 else"README.md"),Path(os.environ.get("MARKPACT_SANDBOX","./sandbox"))
+S.mkdir(parents=True,exist_ok=True)
+def x(c):subprocess.check_call(c,shell=True,cwd=S,env={**os.environ,**({"PATH":f"{S/'.venv/bin'}:{os.environ.get('PATH','')}"}if(S/".venv/bin").exists()else{})})
+d,r=[],None
+for m in re.finditer(r"^```markpact:(\w+)(?:\s+([^\n]+))?\n(.*?)\n^```",R.read_text(),re.DOTALL|re.MULTILINE):
+ k,t,b=m.groups();t,b=(t or"").strip(),b.strip()
+ if k=="file":f=S/re.search(r"path=(\S+)",t)[1];f.parent.mkdir(parents=True,exist_ok=True);f.write_text(b)
+ elif k=="deps"and"python"in t:d+=[l.strip()for l in b.splitlines()if l.strip()]
+ elif k=="run":r=b
+if d:(S/"requirements.txt").write_text("\n".join(d));v=S/".venv/bin/pip";v.exists()or x(f"{sys.executable} -m venv .venv");x(f"{v} install -r requirements.txt")
+r and x(r)
+```
+
+> ⚠️ **Nie rekomendowane** – trudne w utrzymaniu, brak walidacji, brak komunikatów.
+
+---
+
+## 📦 Architektura pakietu Python
+
+```
+markpact/
+├── src/
+│   └── markpact/
+│       ├── __init__.py      # wersja, eksport
+│       ├── cli.py           # entry point CLI
+│       ├── parser.py        # parsowanie codeblocków
+│       ├── runner.py        # run(), ensure_venv()
+│       └── sandbox.py       # zarządzanie sandboxem
+├── tests/
+│   ├── test_parser.py
+│   └── test_runner.py
+├── pyproject.toml
+├── Makefile
+├── README.md
+└── CHANGELOG.md
+```
+
+---
+
+## 🚀 Roadmap
+
+- **v0.1** – MVP (obecny stan)
+- **v0.2** – Pakiet pip, CLI `markpact run README.md`
+- **v0.3** – Node.js deps, `--dry-run`
+- **v0.4** – Watch mode, kolorowe logi
+- **v1.0** – Stabilne API, pełna dokumentacja
