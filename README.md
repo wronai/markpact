@@ -258,6 +258,7 @@ MARKPACT_MAX_TOKENS="4096"
 
 ```bash
 markpact config --provider ollama
+markpact config --model ollama/qwen2.5-coder:14b
 markpact -p "REST API dla książek"
 ```
 

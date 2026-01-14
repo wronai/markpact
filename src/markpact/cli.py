@@ -127,6 +127,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="Run immediately after generating (with --prompt or --example)")
     parser.add_argument("--docker", action="store_true",
                         help="Run in Docker container (isolated sandbox)")
+    parser.add_argument("--auto-fix", action="store_true", default=True,
+                        help="Auto-fix runtime errors (e.g., port in use) - enabled by default")
+    parser.add_argument("--no-auto-fix", action="store_true",
+                        help="Disable auto-fix for runtime errors")
 
     args = parser.parse_args(argv)
     
@@ -300,7 +304,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.dry_run:
             print(f"[markpact] Would run: {run_command}")
         else:
-            run_cmd(run_command, sandbox, verbose)
+            use_auto_fix = args.auto_fix and not args.no_auto_fix
+            if use_auto_fix:
+                from .auto_fix import run_with_auto_fix
+                run_with_auto_fix(run_command, sandbox, readme_path=readme, verbose=verbose)
+            else:
+                run_cmd(run_command, sandbox, verbose)
     elif verbose:
         print("[markpact] No run command defined")
 
