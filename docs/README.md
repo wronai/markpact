@@ -47,6 +47,7 @@ markpact README.md --quiet
 
 ```
 markpact [OPTIONS] [README]
+markpact config [CONFIG_OPTIONS]
 
 Argumenty:
   README                 Ścieżka do pliku Markdown (domyślnie: README.md)
@@ -67,10 +68,26 @@ Konwersja Markdown:
 Generowanie z LLM:
   -p, --prompt TEXT      Generuj kontrakt z opisu tekstowego
   -o, --output FILE      Plik wyjściowy (domyślnie: README.md)
-  -m, --model MODEL      Model LLM (domyślnie: ollama/qwen2.5-coder:7b)
-  --api-base URL         URL API (domyślnie: http://localhost:11434)
+  -m, --model MODEL      Model LLM (nadpisuje config)
+  --api-base URL         URL API (nadpisuje config)
+  --api-key KEY          API key (nadpisuje config)
   -e, --example NAME     Użyj gotowego przykładu (zobacz --list-examples)
   --list-examples        Pokaż dostępne przykłady
+  -r, --run              Uruchom natychmiast po wygenerowaniu
+  --docker               Uruchom w kontenerze Docker
+
+Auto-fix:
+  --auto-fix             Auto-naprawa błędów runtime (domyślnie włączone)
+  --no-auto-fix          Wyłącz auto-naprawę błędów
+
+Konfiguracja (markpact config):
+  --init                 Utwórz plik konfiguracyjny ~/.markpact/.env
+  --force                Nadpisz istniejący plik konfiguracyjny
+  --provider NAME        Zastosuj preset providera (ollama, openrouter, openai, anthropic, groq)
+  --list-providers       Lista dostępnych providerów
+  --model MODEL          Ustaw model LLM
+  --api-key KEY          Ustaw API key
+  --api-base URL         Ustaw API base URL
 ```
 
 ### Przykłady użycia
@@ -79,11 +96,18 @@ Generowanie z LLM:
 # Uruchom projekt
 markpact README.md
 
+# Konfiguracja LLM
+markpact config --init
+markpact config --provider openrouter --api-key sk-or-v1-xxxxx
+
 # Wygeneruj nowy projekt z LLM
 markpact -p "REST API do zadań z SQLite" -o todo/README.md
 
-# Uruchom wygenerowany projekt
-markpact todo/README.md
+# Wygeneruj i uruchom natychmiast (one-liner)
+markpact -p "URL shortener z FastAPI" -o url/README.md --run
+
+# Uruchom w Docker
+markpact todo/README.md --docker
 ```
 
 ## Konwersja Markdown

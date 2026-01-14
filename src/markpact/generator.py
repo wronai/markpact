@@ -76,6 +76,16 @@ def root():
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
 ```
 
+### Test block (HTTP tests for the API):
+```markpact:test http
+# Health check
+GET /health EXPECT 200
+
+# Test main endpoints
+POST /endpoint BODY {"key": "value"} EXPECT 200
+GET /endpoint/1 EXPECT 200
+```
+
 ## IMPORTANT:
 - ALWAYS close EVERY code block with ``` on its own line
 - Use ${MARKPACT_PORT:-8000} for configurable ports
@@ -105,16 +115,29 @@ dep2
 ```
 
 ```markpact:file python path=app/main.py
-# complete working code
+# complete working code with /health endpoint
 ```
 
 ```markpact:run python
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
 ```
+
+```markpact:test http
+# Health check
+GET /health EXPECT 200
+
+# Test API endpoints
+POST /endpoint BODY {"data": "test"} EXPECT 200
+GET /endpoint/1 EXPECT 200
+```
 ```
 
-Generate ONLY the README.md content. Start with # Title.
-REMEMBER: Close ALL code blocks with ```"""
+IMPORTANT RULES:
+1. ALWAYS include a GET /health endpoint returning {"status": "ok"}
+2. ALWAYS include a markpact:test block with HTTP tests
+3. Close ALL code blocks with ```
+
+Generate ONLY the README.md content. Start with # Title."""
 
 
 def _fix_unclosed_blocks(content: str) -> str:

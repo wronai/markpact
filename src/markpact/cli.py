@@ -12,12 +12,24 @@ from .runner import install_deps, run_cmd
 from .sandbox import Sandbox
 
 
-def handle_config(args) -> int:
-    """Handle config subcommand"""
+def handle_config_cli(argv: list[str]) -> int:
+    """Handle config subcommand with its own parser"""
+    import argparse
     from .config import (
         load_env, save_env, init_env, set_model, set_api_key, set_api_base,
         apply_preset, show_config, list_providers, get_env_path, PROVIDER_PRESETS
     )
+    
+    parser = argparse.ArgumentParser(prog="markpact config", description="Manage LLM configuration")
+    parser.add_argument("--init", action="store_true", help="Initialize .env config file")
+    parser.add_argument("--force", action="store_true", help="Overwrite existing config")
+    parser.add_argument("--provider", metavar="NAME", help="Apply provider preset")
+    parser.add_argument("--list-providers", action="store_true", help="List available provider presets")
+    parser.add_argument("--model", dest="set_model", metavar="MODEL", help="Set LLM model")
+    parser.add_argument("--api-key", dest="set_api_key", metavar="KEY", help="Set API key")
+    parser.add_argument("--api-base", dest="set_api_base", metavar="URL", help="Set API base URL")
+    
+    args = parser.parse_args(argv)
     
     # Init config if requested
     if args.init:
@@ -75,23 +87,16 @@ def handle_config(args) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Check if first arg is 'config' subcommand
+    args_list = argv if argv is not None else sys.argv[1:]
+    
+    if args_list and args_list[0] == "config":
+        return handle_config_cli(args_list[1:])
+    
     parser = argparse.ArgumentParser(
         prog="markpact",
         description="Executable Markdown Runtime – run projects from README.md",
     )
-    
-    # Subcommands
-    subparsers = parser.add_subparsers(dest="command", help="Commands")
-    
-    # Config subcommand
-    config_parser = subparsers.add_parser("config", help="Manage LLM configuration")
-    config_parser.add_argument("--init", action="store_true", help="Initialize .env config file")
-    config_parser.add_argument("--force", action="store_true", help="Overwrite existing config")
-    config_parser.add_argument("--provider", metavar="NAME", help="Apply provider preset (ollama, openrouter, openai, anthropic, groq)")
-    config_parser.add_argument("--list-providers", action="store_true", help="List available provider presets")
-    config_parser.add_argument("--model", dest="set_model", metavar="MODEL", help="Set LLM model")
-    config_parser.add_argument("--api-key", dest="set_api_key", metavar="KEY", help="Set API key")
-    config_parser.add_argument("--api-base", dest="set_api_base", metavar="URL", help="Set API base URL")
     
     # Main parser arguments
     parser.add_argument("readme", nargs="?", default="README.md", help="Path to README.md")
@@ -131,12 +136,12 @@ def main(argv: list[str] | None = None) -> int:
                         help="Auto-fix runtime errors (e.g., port in use) - enabled by default")
     parser.add_argument("--no-auto-fix", action="store_true",
                         help="Disable auto-fix for runtime errors")
+    parser.add_argument("--test", "-t", action="store_true",
+                        help="Run tests defined in markpact:test blocks")
+    parser.add_argument("--test-only", action="store_true",
+                        help="Only run tests, don't keep service running")
 
-    args = parser.parse_args(argv)
-    
-    # Handle config subcommand
-    if args.command == "config":
-        return handle_config(args)
+    args = parser.parse_args(args_list)
     
     verbose = not args.quiet
     
@@ -250,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
     blocks = parse_blocks(text_to_parse)
     deps: list[str] = []
     run_command: str | None = None
+    test_blocks: list[tuple[str, str]] = []  # (meta, body)
 
     for block in blocks:
         if block.kind == "bootstrap":
@@ -272,6 +278,9 @@ def main(argv: list[str] | None = None) -> int:
 
         elif block.kind == "run":
             run_command = block.body
+        
+        elif block.kind == "test":
+            test_blocks.append((block.meta, block.body))
 
     # Docker mode
     if args.docker:
@@ -300,6 +309,50 @@ def main(argv: list[str] | None = None) -> int:
         else:
             install_deps(deps, sandbox, verbose)
 
+    # Test mode - start service, run tests, stop
+    if (args.test or args.test_only) and test_blocks and run_command:
+        from .tester import run_service_with_tests, run_shell_tests
+        from .auto_fix import find_free_port
+        
+        if args.dry_run:
+            print(f"[markpact] Would run tests:")
+            for meta, body in test_blocks:
+                print(f"  [{meta}]: {len(body.splitlines())} tests")
+            return 0
+        
+        # Find free port
+        port = find_free_port()
+        
+        # Combine all HTTP test blocks
+        http_tests = []
+        shell_tests = []
+        for meta, body in test_blocks:
+            if "http" in meta.lower() or not meta:
+                http_tests.append(body)
+            elif "shell" in meta.lower() or "bash" in meta.lower():
+                shell_tests.append(body)
+            else:
+                http_tests.append(body)  # default to HTTP
+        
+        if http_tests:
+            test_body = "\n".join(http_tests)
+            exit_code, suite = run_service_with_tests(
+                run_command, test_body, sandbox, port=port, verbose=verbose
+            )
+            
+            if args.test_only:
+                return exit_code
+        
+        # Run shell tests
+        if shell_tests:
+            shell_body = "\n".join(shell_tests)
+            shell_suite = run_shell_tests(shell_body, sandbox, verbose=verbose)
+            shell_suite.print_summary()
+        
+        if args.test_only:
+            return 0
+    
+    # Normal run mode
     if run_command:
         if args.dry_run:
             print(f"[markpact] Would run: {run_command}")

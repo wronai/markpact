@@ -11,9 +11,51 @@
 Markpact to minimalny runtime, który pozwala trzymać cały projekt w jednym `README.md`.
 Runtime ignoruje zwykły Markdown, a wykonuje wyłącznie codeblocki `markpact:*`.
 
+## 🚀 Szybki start
+
+```bash
+# Instalacja
+pip install markpact[llm]
+
+# Konfiguracja LLM (wybierz jeden)
+markpact config --provider ollama                              # lokalny
+markpact config --provider openrouter --api-key sk-or-v1-xxx   # chmura
+
+# Generuj i uruchom jedną komendą!
+markpact -p "REST API do zarządzania zadaniami z SQLite" -o todo/README.md --run
+
+markpact -p "URL shortener with FastAPI and SQLite" -o url-test/README.md --run
+
+# Lub z gotowego przykładu
+markpact -e todo-api -o todo/README.md --run
+```
+
+## 🤖 Generowanie z LLM
+
+Wygeneruj kompletny projekt z opisu tekstowego:
+
+```bash
+# Lista 16 gotowych przykładów
+markpact --list-examples
+
+# Generuj z promptu
+markpact -p "URL shortener z FastAPI i SQLite" -o url/README.md
+
+# Generuj i uruchom natychmiast (one-liner)
+markpact -p "Chat WebSocket z FastAPI" -o chat/README.md --run
+
+# Uruchom w izolowanym Docker
+markpact -p "Blog API z komentarzami" -o blog/README.md --run --docker
+```
+
+**Obsługiwane providery:** Ollama (lokalny), OpenRouter, OpenAI, Anthropic, Groq
+
+Szczegóły: [docs/generator.md](docs/generator.md)
+
 ## 📚 Dokumentacja
 
 - [Pełna dokumentacja](docs/README.md)
+- [Generowanie z LLM](docs/generator.md) ⭐ **NEW**
 - [Kontrakt markpact:*](docs/contract.md)
 - [CI/CD Integration](docs/ci-cd.md)
 - [Współpraca z LLM](docs/llm.md)

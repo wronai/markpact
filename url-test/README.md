@@ -1,22 +1,19 @@
-# URL Shortener
+# URL Shortener with FastAPI and SQLite
 
-A minimal, production‑ready URL shortener built with **FastAPI**, **SQLite**, and **SQLAlchemy**.  
-It supports custom aliases, automatic code generation, active/inactive flagging, and a clean JSON API.
+A minimal URL shortener API built with FastAPI and SQLite.  
+It provides endpoints to create short links and resolve them back to the original URLs.
 
 ## Features
-- Create short URLs with optional custom aliases
-- Automatic incremental short‑code generation
-- Redirects to the original URL with a 302 response
-- List all active short URLs via a JSON endpoint
-- Deactivate (soft‑delete) short URLs
-- CORS enabled for easy front‑end integration
-- SQLite database for zero‑config deployment
+- Create short links via POST `/shorten`
+- Resolve short links via GET `/{short_code}`
+- Persistent storage using SQLite via SQLAlchemy
+- Pydantic validation for request/response models
+- Type‑annotated, ready‑to‑run FastAPI application
 
 ## API Endpoints
-- **POST** `/shorten` – Create a new short URL  
-- **GET** `/{short_code}` – Redirect to the original URL  
-- **GET** `/api/urls` – List all active short URLs  
-- **DELETE** `/{short_code}` – Deactivate a short URL  
+- `POST /shorten` - Create a new short link
+- `GET /{short_code}` - Retrieve the original URL for a short code
+- `DELETE /{short_code}` - (Optional) Delete a short link
 
 ---
 
@@ -29,20 +26,15 @@ pydantic
 
 ```markpact:file python path=app/main.py
 from fastapi import FastAPI, HTTPException, Depends, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from sqlalchemy import Column, Integer, String, Boolean, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from pydantic import BaseModel, Field
-from typing import List, Optional
-import os
+from sqlalchemy import create_engine, Column, String, Integer
+from sqlalchemy.orm import sessionmaker, declarative_base
+from typing import Dict
 
-# ----------------------------------------------------------------------
-# Database Setup
-# ----------------------------------------------------------------------
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./shorteners.db")
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# ---------- Database Setup ----------
+SQLALCHEMY_DATABASE_URL = "sqlite:///./shortener.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -51,53 +43,23 @@ class ShortURL(Base):
     __tablename__ = "short_urls"
 
     id = Column(Integer, primary_key=True, index=True)
-    original_url = Column(String, nullable=False)
     short_code = Column(String, unique=True, index=True, nullable=False)
-    is_active = Column(Boolean, default=True)
+    original_url = Column(String, nullable=False)
 
 
 Base.metadata.create_all(bind=engine)
 
-
-# ----------------------------------------------------------------------
-# Pydantic Models
-# ----------------------------------------------------------------------
-class ShortURLCreate(BaseModel):
-    original_url: str = Field(..., example="https://example.com")
-    custom_alias: Optional[str] = Field(None, example="ex")
-
-    class Config:
-        json_schema_extra = {
-            "example": {"original_url": "https://example.com", "custom_alias": "ex"}
-        }
+# ---------- Pydantic Models ----------
+class ShortenRequest(BaseModel):
+    url: str = Field(..., example="https://example.com/very/long/url")
 
 
-class ShortURLResponse(BaseModel):
-    id: int
-    original_url: str
+class ShortenResponse(BaseModel):
     short_code: str
-    is_active: bool
-
-    class Config:
-        orm_mode = True
+    full_url: str
 
 
-# ----------------------------------------------------------------------
-# FastAPI App
-# ----------------------------------------------------------------------
-app = FastAPI()
-
-# Enable CORS for all origins (adjust for production)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-# Dependency to get DB session
+# ---------- Dependency ----------
 def get_db():
     db = SessionLocal()
     try:
@@ -106,60 +68,58 @@ def get_db():
         db.close()
 
 
-# ----------------------------------------------------------------------
-# Endpoints
-# ----------------------------------------------------------------------
-@app.post("/shorten", response_model=ShortURLResponse)
-async def create_short_url(payload: ShortURLCreate, db: SessionLocal = Depends(get_db)):
-    # Resolve custom alias or generate one
-    if payload.custom_alias:
-        if db.query(ShortURL).filter(ShortURL.short_code == payload.custom_alias).first():
-            raise HTTPException(status_code=400, detail="Custom alias already in use")
-        short_code = payload.custom_alias
-    else:
-        # Simple incremental code generation
-        last = db.query(ShortURL).order_by(ShortURL.id.desc()).first()
-        short_code = str(last.id + 1) if last else "1"
+# ---------- FastAPI App ----------
+app = FastAPI()
 
-    db_obj = ShortURL(
-        original_url=payload.original_url,
-        short_code=short_code,
-        is_active=True,
-    )
-    db.add(db_obj)
+
+# Helper to generate a short code (simple base36)
+def generate_short_code(length: int = 6) -> str:
+    import uuid
+    unique_id = uuid.uuid4().int & ((1 << 36) - 1)
+    return str(unique_id)[:length]
+
+
+# ---------- Routes ----------
+@app.post("/shorten", response_model=ShortenResponse)
+async def create_short_link(
+    request: ShortenRequest, db: SessionLocal = Depends(get_db)
+):
+    # Validate URL scheme
+    if not request.url.startswith(("http://", "https://")):
+        raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
+
+    # Check if URL already exists to avoid duplicates
+    existing = db.query(ShortURL).filter_by(original_url=request.url).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="URL already shortened")
+
+    short_code = generate_short_code()
+    db_entry = ShortURL(short_code=short_code, original_url=request.url)
+    db.add(db_entry)
     db.commit()
-    db.refresh(db_obj)
-    return db_obj
+    db.refresh(db_entry)
+
+    return ShortenResponse(short_code=short_code, full_url=request.url)
 
 
-@app.get("/{short_code}", response_class=RedirectResponse)
-async def redirect(short_code: str, db: SessionLocal = Depends(get_db)):
-    record = (
-        db.query(ShortURL)
-        .filter(ShortURL.short_code == short_code, ShortURL.is_active == True)
-        .first()
-    )
-    if not record:
-        raise HTTPException(status_code=404, detail="Short URL not found or inactive")
-    return RedirectResponse(url=record.original_url, status_code=302)
+@app.get("/{short_code}")
+async def resolve_short_link(short_code: str, db: SessionLocal = Depends(get_db)):
+    db_entry = db.query(ShortURL).filter_by(short_code=short_code).first()
+    if not db_entry:
+        raise HTTPException(status_code=404, detail="Short code not found")
+    return RedirectResponse(db_entry.original_url)
 
 
-@app.get("/api/urls", response_model=List[ShortURLResponse])
-async def list_urls(db: SessionLocal = Depends(get_db)):
-    return db.query(ShortURL).filter(ShortURL.is_active == True).all()
-
-
-@app.delete("/{short_code}", response_model=ShortURLResponse)
-async def deactivate_url(short_code: str, db: SessionLocal = Depends(get_db)):
-    record = db.query(ShortURL).filter(ShortURL.short_code == short_code).first()
-    if not record:
-        raise HTTPException(status_code=404, detail="Short URL not found")
-    record.is_active = False
+@app.delete("/{short_code}")
+async def delete_short_link(short_code: str, db: SessionLocal = Depends(get_db)):
+    db_entry = db.query(ShortURL).filter_by(short_code=short_code).first()
+    if not db_entry:
+        raise HTTPException(status_code=404, detail="Short code not found")
+    db.delete(db_entry)
     db.commit()
-    db.refresh(record)
-    return record
+    return {"detail": "Short link deleted"}
 ```
 
 ```markpact:run python
-uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
+uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8009}
 ```
