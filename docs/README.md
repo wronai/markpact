@@ -5,6 +5,8 @@ Markpact to minimalny runtime pozwalający trzymać cały projekt w jednym `READ
 ## Spis treści
 
 - [Szybki start](#szybki-start)
+- [CLI Reference](#cli-reference)
+- [Konwersja Markdown](#konwersja-markdown)
 - [Kontrakt markpact:*](contract.md)
 - [Integracja CI/CD](ci-cd.md)
 - [Współpraca z LLM](llm.md)
@@ -14,10 +16,16 @@ Markpact to minimalny runtime pozwalający trzymać cały projekt w jednym `READ
 ### Instalacja
 
 ```bash
+# Z PyPI
 pip install markpact
+
+# Lub lokalnie (dev)
+git clone https://github.com/wronai/markpact.git
+cd markpact
+pip install -e .
 ```
 
-### Użycie
+### Podstawowe użycie
 
 ```bash
 # Uruchom projekt z README
@@ -27,8 +35,59 @@ markpact README.md
 markpact README.md --dry-run
 
 # Własny katalog sandbox
-markpact README.md -s ./my-sandbox
+markpact README.md --sandbox ./my-sandbox
+
+# Tryb cichy
+markpact README.md --quiet
 ```
+
+## CLI Reference
+
+```
+markpact [OPTIONS] [README]
+
+Argumenty:
+  README                 Ścieżka do pliku Markdown (domyślnie: README.md)
+
+Opcje:
+  -s, --sandbox DIR      Katalog sandbox (domyślnie: ./sandbox)
+  -n, --dry-run          Pokaż co zostanie wykonane, bez uruchamiania
+  -q, --quiet            Tryb cichy (bez komunikatów)
+  -c, --convert          Konwertuj zwykły Markdown do markpact i uruchom
+  --convert-only         Tylko konwertuj i wyświetl wynik
+  --save-converted FILE  Zapisz skonwertowany plik
+  -a, --auto             Auto-detekcja: konwertuj jeśli brak markpact blocks
+  -V, --version          Pokaż wersję
+  -h, --help             Pokaż pomoc
+```
+
+## Konwersja Markdown
+
+Markpact może automatycznie konwertować zwykłe pliki Markdown (bez tagów `markpact:*`):
+
+```bash
+# Podgląd konwersji
+markpact sample.md --convert-only
+
+# Konwertuj i uruchom
+markpact sample.md --convert
+
+# Auto-detekcja (konwertuj jeśli brak markpact blocks)
+markpact sample.md --auto
+
+# Zapisz wynik konwersji
+markpact sample.md --convert-only --save-converted output.md
+```
+
+### Heurystyki detekcji
+
+| Wykryte | Konwertowane na | Przykład |
+|---------|-----------------|----------|
+| Lista pakietów | `markpact:deps python` | `fastapi`, `requests>=2.0` |
+| Kod Python | `markpact:file python path=...` | `import`, `def`, `class` |
+| Kod JavaScript | `markpact:file javascript path=...` | `const`, `require`, `import` |
+| HTML | `markpact:file html path=...` | `<!DOCTYPE`, `<html>` |
+| Komendy bash | `markpact:run bash` | `python`, `uvicorn`, `npm` |
 
 ### Zmienne środowiskowe
 
