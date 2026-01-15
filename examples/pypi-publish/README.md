@@ -21,6 +21,27 @@ markpact examples/pypi-publish/README.md --publish --bump patch
 markpact examples/pypi-publish/README.md --publish
 ```
 
+## Instalacja i użycie CLI
+
+Po publikacji na PyPI, możesz zainstalować i używać CLI:
+
+```bash
+# Instalacja
+pip install markpact-example-pypi
+
+# Użycie CLI
+markpact-example-pypi
+# Output: Hello, World!
+
+# Z niestandardowym imieniem
+markpact-example-pypi --name "Markpact"
+# Output: Hello, Markpact!
+
+# Dodawanie liczb
+markpact-example-pypi --add 5 3
+# Output: 5 + 3 = 8
+```
+
 ## Konfiguracja
 
 Upewnij się, że masz skonfigurowany `~/.pypirc`:
@@ -38,6 +59,19 @@ password = pypi-xxxx
 publishing:
 ```bash
 markpact examples/pypi-publish/README.md --publish
+```
+
+generated files:
+```bash
+./sandbox/
+└── markpact_example_pypi
+    ├── cli.py
+    ├── dist
+    │   ├── markpact_example_pypi-0.1.15-py3-none-any.whl
+    │   └── markpact_example_pypi-0.1.15.tar.gz
+    ├── __init__.py
+    ├── pyproject.toml
+    └── README.md
 ```
 
 output:
@@ -69,7 +103,7 @@ published project:
 ```markpact:publish
 registry = pypi
 name = markpact-example-pypi
-version = 0.1.12
+version = 0.1.18
 description = Example package published with markpact
 author = Your Name
 license = MIT

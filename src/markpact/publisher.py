@@ -404,7 +404,6 @@ requires-python = ">=3.10"
 [project.urls]
 Homepage = "{config.repository}"
 
-
 [project.scripts]
 markpact-example-pypi = "markpact_example_pypi.cli:main"
 
