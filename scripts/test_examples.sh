@@ -85,6 +85,10 @@ CONVERTER_EXAMPLES=(
     "markdown-converter"
 )
 
+NOTEBOOK_EXAMPLES=(
+    "notebook-converter"
+)
+
 # Statistics
 PASSED=0
 FAILED=0
@@ -201,6 +205,46 @@ test_converter_example() {
     fi
 }
 
+test_notebook_example() {
+    local example_name="$1"
+    local example_dir="$EXAMPLES_DIR/$example_name"
+    
+    # Find all notebook files in the example directory
+    local notebook_files=$(find "$example_dir" -maxdepth 1 -type f \( -name "*.ipynb" -o -name "*.Rmd" -o -name "*.qmd" -o -name "*.dib" -o -name "*.zpln" \) 2>/dev/null)
+    
+    if [[ -z "$notebook_files" ]]; then
+        log "${YELLOW}⚠ SKIP${NC} $example_name - no notebook files found"
+        ((SKIPPED++))
+        return 0
+    fi
+    
+    local all_passed=true
+    
+    for notebook_path in $notebook_files; do
+        local filename=$(basename "$notebook_path")
+        log_verbose "${BLUE}Testing notebook${NC} $filename..."
+        
+        local output
+        local exit_code=0
+        
+        output=$(timeout "$TIMEOUT" markpact --from-notebook "$notebook_path" --convert-only 2>&1) || exit_code=$?
+        
+        if [[ $exit_code -eq 0 ]]; then
+            log "${GREEN}✓ PASS${NC} $example_name ($filename)"
+            log_verbose "$output"
+            ((PASSED++))
+        else
+            log "${RED}✗ FAIL${NC} $example_name ($filename, exit code: $exit_code)"
+            log_verbose "$output"
+            ((FAILED++))
+            FAILED_EXAMPLES+=("$example_name:$filename")
+            all_passed=false
+        fi
+    done
+    
+    $all_passed
+}
+
 # Main
 echo "=============================================="
 echo "       Markpact Examples Test Suite"
@@ -240,6 +284,12 @@ echo ""
 echo "--- Converter Examples ---"
 for example in "${CONVERTER_EXAMPLES[@]}"; do
     test_converter_example "$example" || true
+done
+
+echo ""
+echo "--- Notebook Examples ---"
+for example in "${NOTEBOOK_EXAMPLES[@]}"; do
+    test_notebook_example "$example" || true
 done
 
 # Summary

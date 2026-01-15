@@ -1,0 +1,40 @@
+{
+  "name": "Calculator API",
+  "paragraphs": [
+    {
+      "text": "%md\n# Calculator API\n\nA simple calculator REST API with FastAPI.",
+      "config": {}
+    },
+    {
+      "text": "%python\nfrom fastapi import FastAPI\nfrom pydantic import BaseModel",
+      "config": {}
+    },
+    {
+      "text": "%md\n## Models",
+      "config": {}
+    },
+    {
+      "text": "%python\nclass Calculation(BaseModel):\n    a: float\n    b: float\n\nclass Result(BaseModel):\n    operation: str\n    a: float\n    b: float\n    result: float",
+      "config": {}
+    },
+    {
+      "text": "%md\n## Application",
+      "config": {}
+    },
+    {
+      "text": "%python\napp = FastAPI(title=\"Calculator API\")\n\n@app.get(\"/\")\ndef root():\n    return {\"service\": \"Calculator\", \"operations\": [\"add\", \"sub\", \"mul\", \"div\"]}\n\n@app.post(\"/add\")\ndef add(calc: Calculation):\n    return Result(operation=\"add\", a=calc.a, b=calc.b, result=calc.a + calc.b)\n\n@app.post(\"/sub\")\ndef subtract(calc: Calculation):\n    return Result(operation=\"sub\", a=calc.a, b=calc.b, result=calc.a - calc.b)\n\n@app.post(\"/mul\")\ndef multiply(calc: Calculation):\n    return Result(operation=\"mul\", a=calc.a, b=calc.b, result=calc.a * calc.b)\n\n@app.post(\"/div\")\ndef divide(calc: Calculation):\n    if calc.b == 0:\n        return {\"error\": \"Division by zero\"}\n    return Result(operation=\"div\", a=calc.a, b=calc.b, result=calc.a / calc.b)",
+      "config": {}
+    },
+    {
+      "text": "%md\n## Health",
+      "config": {}
+    },
+    {
+      "text": "%python\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}",
+      "config": {}
+    }
+  ],
+  "config": {
+    "defaultInterpreter": "python"
+  }
+}

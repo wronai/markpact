@@ -1,6 +1,7 @@
 project: markpact
-generated: "2026-01-15T13:56:05.045337"
-modules[20]{path,lang,items}:
+generated: "2026-01-15T15:15:42.450679"
+modules[22]{path,lang,items}:
+  tests/test_notebook_converter.py,python,14
   tests/test_generator.py,python,9
   tests/test_parser.py,python,5
   tests/test_sandbox.py,python,5
@@ -17,12 +18,29 @@ modules[20]{path,lang,items}:
   src/markpact/generator.py,python,7
   src/markpact/runner.py,python,3
   src/markpact/__init__.py,python,0
+  src/markpact/notebook_converter.py,python,12
   src/markpact/parser.py,python,2
-  src/markpact/auto_fix.py,python,5
+  src/markpact/auto_fix.py,python,8
   src/markpact/publisher.py,python,22
   src/markpact/converter.py,python,4
 
 function_details:
+  tests/test_notebook_converter.py:
+    functions[14]{name,kind,sig,loc,async,lines,cc,does}:
+      test_detect_format_jupyter,function,() -> None,22-24,false,3,1,Test detection of Jupyter notebook format.
+      test_detect_format_rmarkdown,function,() -> None,27-30,false,4,1,Test detection of R Markdown format.
+      test_detect_format_quarto,function,() -> None,33-35,false,3,1,Test detection of Quarto format.
+      test_detect_format_unknown,function,() -> None,38-41,false,4,1,Test detection of unknown format.
+      test_get_supported_formats,function,() -> None,44-50,false,7,1,Test getting list of supported formats.
+      test_parse_jupyter,function,"(tmp_path:Path) -> None",53-87,false,35,1,Test parsing Jupyter notebook.
+      test_extract_dependencies,function,() -> None,90-112,false,23,1,Test extracting dependencies from notebook.
+      test_suggest_run_command_fastapi,function,() -> None,115-129,false,15,1,Test run command suggestion for FastAPI.
+      test_suggest_run_command_streamlit,function,() -> None,132-146,false,15,1,Test run command suggestion for Streamlit.
+      test_suggest_run_command_flask,function,() -> None,149-163,false,15,1,Test run command suggestion for Flask.
+      test_notebook_to_markpact,function,() -> None,166-193,false,28,1,Test converting notebook to markpact format.
+      test_convert_notebook_jupyter,function,"(tmp_path:Path) -> None",196-230,false,35,1,Test full conversion of Jupyter notebook.
+      test_convert_notebook_file_not_found,function,() -> None,233-236,false,4,1,Test error handling for missing notebook file.
+      test_convert_notebook_unsupported_format,function,"(tmp_path:Path) -> None",239-245,false,7,1,Test error handling for unsupported format.
   tests/test_generator.py:
     functions[9]{name,kind,sig,loc,async,lines,cc,does}:
       test_generator_config_defaults,function,() -> None,15-20,false,6,1,Test default configuration values
@@ -123,7 +141,7 @@ function_details:
   src/markpact/cli.py:
     functions[2]{name,kind,sig,loc,async,lines,cc,does}:
       handle_config_cli,function,"(argv:list[str]) -> int",15-86,false,72,12,Handle config subcommand with its own parser
-      main,function,"(argv:Any=None) -> int",89-466,false,378,95,main
+      main,function,"(argv:Any=None) -> int",89-515,false,427,103,main
   src/markpact/docker_runner.py:
     functions[6]{name,kind,sig,loc,async,lines,cc,does}:
       generate_dockerfile,function,"(sandbox_path:Path, deps:list[str], run_command:str) -> Path",29-66,false,38,3,Generate a Dockerfile for the markpact project.
@@ -146,17 +164,34 @@ function_details:
       run_cmd,function,"(cmd:str, sandbox:Sandbox, verbose:bool=True) -> int",11-21,false,11,3,Run command in sandbox with venv-aware PATH
       ensure_venv,function,"(sandbox:Sandbox, verbose:bool=True) -> None",24-30,false,7,3,Create venv in sandbox if not exists and not disabled
       install_deps,function,"(deps:list[str], sandbox:Sandbox, verbose:bool=True) -> None",33-42,false,10,3,Install Python dependencies in sandbox
+  src/markpact/notebook_converter.py:
+    functions[12]{name,kind,sig,loc,async,lines,cc,does}:
+      detect_format,function,"(path:Path) -> Optional[str]",38-49,false,12,1,Detect notebook format from file extension.
+      parse_jupyter,function,"(path:Path) -> Notebook",52-105,false,54,11,Parse Jupyter .ipynb notebook.
+      parse_rmarkdown,function,"(path:Path) -> Notebook",108-180,false,73,15,Parse R Markdown .Rmd file.
+      parse_quarto,function,"(path:Path) -> Notebook",183-248,false,66,11,Parse Quarto .qmd file (similar to R Markdown but multi-language).
+      parse_zeppelin,function,"(path:Path) -> Notebook",251-306,false,56,7,Parse Zeppelin .zpln notebook.
+      parse_databricks,function,"(path:Path) -> Notebook",309-364,false,56,7,Parse Databricks .dib notebook.
+      parse_notebook,function,"(path:Path) -> Notebook",367-382,false,16,6,Parse notebook file based on format.
+      extract_dependencies,function,"(notebook:Notebook) -> list[str]",385-424,false,40,11,Extract dependencies from notebook code cells.
+      suggest_run_command,function,"(notebook:Notebook) -> str",427-455,false,29,11,Suggest a run command based on notebook content.
+      notebook_to_markpact,function,"(notebook:Notebook, output_path:Optional[Path]=None, verbose:bool=True) -> str",458-594,false,137,29,Convert notebook to markpact README.md format.
+      convert_notebook,function,"(input_path:Path, output_path:Optional[Path]=None, verbose:bool=True) -> str",597-627,false,31,5,Convert a notebook file to markpact format.
+      get_supported_formats,function,"() -> dict[str, str]",630-638,false,9,1,Get dictionary of supported notebook formats.
   src/markpact/parser.py:
     functions[2]{name,kind,sig,loc,async,lines,cc,does}:
       parse_blocks,function,"(text:str) -> list[Block]",24-33,false,10,3,"Parse all markpact:* codeblocks from markdown text"
       Block.get_path,method,() -> str | None,18-21,false,4,2,Extract path= from meta
   src/markpact/auto_fix.py:
-    functions[5]{name,kind,sig,loc,async,lines,cc,does}:
+    functions[8]{name,kind,sig,loc,async,lines,cc,does}:
       find_free_port,function,"(start_port:int=8000, max_attempts:int=100) -> int",13-22,false,10,3,Find a free port starting from start_port.
       detect_error_type,function,"(error_output:str) -> Optional[str]",25-35,false,11,5,Detect the type of error from output.
       fix_port_in_readme,function,"(readme_path:Path, new_port:int) -> bool",38-61,false,24,3,Update the port in a README file.
       run_with_auto_fix,function,"(cmd:str, sandbox:Sandbox, readme_path:Optional[Path]=None, verbose:bool=True, max_retries:int=3) -> int",64-148,false,85,14,Run command with automatic error detection and fixing.
       add_missing_dependency,function,"(readme_path:Path, module_name:str) -> bool",151-167,false,17,3,Add a missing dependency to the README deps block.
+      extract_module_name,function,"(error_output:str) -> Optional[str]",170-176,false,7,2,Extract missing module name from ModuleNotFoundError.
+      fix_with_llm,function,"(readme_path:Path, error_output:str, error_type:str, verbose:bool=True) -> bool",179-236,false,58,8,Use LLM to fix errors in the README.
+      run_with_auto_fix_llm,function,"(cmd:str, sandbox:Sandbox, readme_path:Optional[Path]=None, verbose:bool=True, max_retries:int=3, use_llm:bool=False) -> int",239-344,false,106,29,Run command with automatic error detection and fixing (with optional LLM).
   src/markpact/publisher.py:
     functions[22]{name,kind,sig,loc,async,lines,cc,does}:
       _slugify,function,"(name:str) -> str",42-46,false,5,2,slugify

@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports dry-run and full-run modes
   - Categorized tests: Python, Node.js, Other, Publish, Converter
   - Summary with pass/fail/skip counts
+- **Notebook Converter** (`notebook_converter.py`):
+  - Convert Jupyter (.ipynb), R Markdown (.Rmd), Quarto (.qmd), Databricks (.dib), Zeppelin (.zpln) to markpact
+  - `--from-notebook FILE` flag for conversion
+  - `--list-notebook-formats` to list supported formats
+  - Automatic dependency extraction from imports
+  - Intelligent file grouping (app.py, models.py)
+  - Framework-aware run command suggestions
 - **Dynamic License Mapping** (`publisher.py`):
   - `get_license_classifier()` maps license names to PyPI classifiers
   - Supports: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause, ISC, LGPL-3.0, MPL-2.0, Unlicense

@@ -1,6 +1,7 @@
-# markpact | 20f 3868L | python:20
+# markpact | 22f 4979L | python:22
 # Keys: M=modules, D=details, i=imports, c=classes, f=functions, m=methods
-M[20]:
+M[22]:
+  tests/test_notebook_converter.py,197
   tests/test_generator.py,99
   tests/test_parser.py,50
   tests/test_sandbox.py,34
@@ -12,16 +13,28 @@ M[20]:
   src/markpact/tester.py,237
   src/markpact/config.py,154
   src/markpact/sandbox.py,35
-  src/markpact/cli.py,352
+  src/markpact/cli.py,390
   src/markpact/docker_runner.py,185
   src/markpact/generator.py,211
   src/markpact/runner.py,30
   src/markpact/__init__.py,26
+  src/markpact/notebook_converter.py,505
   src/markpact/parser.py,26
-  src/markpact/auto_fix.py,120
+  src/markpact/auto_fix.py,256
   src/markpact/publisher.py,825
   src/markpact/converter.py,210
 D:
+  tests/test_notebook_converter.py:
+    i: json,pytest,markpact.notebook_converter,pathlib.Path
+    e: test_detect_format_jupyter,test_detect_format_rmarkdown,test_detect_format_quarto,test_detect_format_unknown,test_get_supported_formats,test_parse_jupyter,test_extract_dependencies,test_suggest_run_command_fastapi
+    test_detect_format_jupyter()->None
+    test_detect_format_rmarkdown()->None
+    test_detect_format_quarto()->None
+    test_detect_format_unknown()->None
+    test_get_supported_formats()->None
+    test_parse_jupyter(tmp_path:Path)->None
+    test_extract_dependencies()->None
+    test_suggest_run_command_fastapi()->None
   tests/test_generator.py:
     i: pytest,markpact.generator.{EXAMPLE_PROMPTS,GeneratorConfig,SYSTEM_PROMPT,get_example_prompt,list_example_prompts},unittest.mock.{MagicMock,patch}
     e: test_generator_config_defaults,test_generator_config_from_env,test_get_example_prompt,test_get_example_prompt_unknown,test_list_example_prompts,test_system_prompt_contains_format,test_example_prompts_dict,test_generate_contract_integration
@@ -140,6 +153,19 @@ D:
     run_cmd(cmd:str;sandbox:Sandbox;verbose:bool=True)->int
     ensure_venv(sandbox:Sandbox;verbose:bool=True)->None
     install_deps(deps:list[str];sandbox:Sandbox;verbose:bool=True)->None
+  src/markpact/notebook_converter.py:
+    i: json,re,dataclasses.{dataclass,field},pathlib.Path,typing.Optional
+    e: NotebookCell,Notebook,detect_format,parse_jupyter,parse_rmarkdown,parse_quarto,parse_zeppelin,parse_databricks
+    NotebookCell:   # Represents a cell in a notebook.
+    Notebook:   # Represents a parsed notebook.
+    detect_format(path:Path)->Optional[str]
+    parse_jupyter(path:Path)->Notebook
+    parse_rmarkdown(path:Path)->Notebook
+    parse_quarto(path:Path)->Notebook
+    parse_zeppelin(path:Path)->Notebook
+    parse_databricks(path:Path)->Notebook
+    parse_notebook(path:Path)->Notebook
+    extract_dependencies(notebook:Notebook)->list[str]
   src/markpact/parser.py:
     i: re,dataclasses.dataclass
     e: CODEBLOCK_RE,Block,parse_blocks
@@ -147,12 +173,15 @@ D:
     parse_blocks(text:str)->list[Block]
   src/markpact/auto_fix.py:
     i: os,re,socket,subprocess,pathlib.Path,sandbox.Sandbox,typing.Optional
-    e: find_free_port,detect_error_type,fix_port_in_readme,run_with_auto_fix,add_missing_dependency
+    e: find_free_port,detect_error_type,fix_port_in_readme,run_with_auto_fix,add_missing_dependency,extract_module_name,fix_with_llm,run_with_auto_fix_llm
     find_free_port(start_port:int=8000;max_attempts:int=100)->int
     detect_error_type(error_output:str)->Optional[str]
     fix_port_in_readme(readme_path:Path;new_port:int)->bool
     run_with_auto_fix(cmd:str;sandbox:Sandbox;readme_path:Optional[Path]=None;verbose:bool=True;max_retries:int=3)->int
     add_missing_dependency(readme_path:Path;module_name:str)->bool
+    extract_module_name(error_output:str)->Optional[str]
+    fix_with_llm(readme_path:Path;error_output:str;error_type:str;verbose:bool=True)->bool
+    run_with_auto_fix_llm(cmd:str;sandbox:Sandbox;readme_path:Optional[Path]=None;verbose:bool=True;max_retries:int=3;use_llm:bool=False)->int
   src/markpact/publisher.py:
     i: json,os,re,subprocess,sys,dataclasses.dataclass,pathlib.Path,sandbox.Sandbox,typing.Optional
     e: PublishConfig,PublishResult,infer_publish_config,prompt_publish_config,ensure_publish_block_in_readme,generate_publish_config_with_llm,bump_version,extract_version_from_readme

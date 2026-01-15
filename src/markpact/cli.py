@@ -114,6 +114,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="Save converted markpact to file")
     parser.add_argument("--auto", "-a", action="store_true",
                         help="Auto-detect and convert if no markpact blocks found")
+    parser.add_argument("--from-notebook", metavar="FILE",
+                        help="Convert notebook file (.ipynb, .Rmd, .qmd, .dib, .zpln) to markpact")
+    parser.add_argument("--list-notebook-formats", action="store_true",
+                        help="List supported notebook formats for conversion")
     parser.add_argument("--version", "-V", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--quiet", "-q", action="store_true", help="Suppress output")
     
@@ -173,6 +177,43 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {name:15} - {desc}")
         print(f"\nUsage: markpact -e todo-api -o my-project/README.md")
         return 0
+    
+    # Handle --list-notebook-formats
+    if args.list_notebook_formats:
+        from .notebook_converter import get_supported_formats
+        print("\n[markpact] Supported notebook formats:\n")
+        for ext, name in get_supported_formats().items():
+            print(f"  {ext:8} - {name}")
+        print(f"\nUsage: markpact --from-notebook notebook.ipynb -o project/README.md")
+        return 0
+    
+    # Handle --from-notebook (notebook conversion)
+    if args.from_notebook:
+        from .notebook_converter import convert_notebook
+        
+        notebook_path = Path(args.from_notebook)
+        output_path = Path(args.output) if args.output else Path("README.md")
+        
+        try:
+            content = convert_notebook(notebook_path, output_path, verbose=verbose)
+            
+            if args.convert_only:
+                print("\n--- CONVERTED CONTENT ---\n")
+                print(content)
+                return 0
+            
+            if verbose:
+                print(f"[markpact] Saved to: {output_path}")
+            
+            # If --run, continue to execute
+            if args.run:
+                args.readme = str(output_path)
+            else:
+                return 0
+                
+        except Exception as e:
+            print(f"[markpact] ERROR: {e}", file=sys.stderr)
+            return 1
     
     # Handle --prompt or --example (LLM generation)
     if args.prompt or args.example:

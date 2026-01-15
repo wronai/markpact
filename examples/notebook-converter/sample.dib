@@ -1,0 +1,29 @@
+{
+  "language": "python",
+  "commands": [
+    {
+      "command": "%md\n# Notes API\n\nA simple notes management API."
+    },
+    {
+      "command": "%python\nfrom fastapi import FastAPI, HTTPException\nfrom pydantic import BaseModel\nfrom datetime import datetime"
+    },
+    {
+      "command": "%md\n## Data Models"
+    },
+    {
+      "command": "%python\nclass Note(BaseModel):\n    id: int\n    title: str\n    content: str\n    created_at: str\n\nclass NoteCreate(BaseModel):\n    title: str\n    content: str"
+    },
+    {
+      "command": "%md\n## API Endpoints"
+    },
+    {
+      "command": "%python\napp = FastAPI(title=\"Notes API\")\n\nnotes: dict[int, Note] = {}\nnext_id = 1\n\n@app.get(\"/\")\ndef root():\n    return {\"service\": \"Notes API\", \"count\": len(notes)}\n\n@app.get(\"/notes\")\ndef list_notes():\n    return list(notes.values())\n\n@app.get(\"/notes/{note_id}\")\ndef get_note(note_id: int):\n    if note_id not in notes:\n        raise HTTPException(status_code=404, detail=\"Note not found\")\n    return notes[note_id]\n\n@app.post(\"/notes\")\ndef create_note(note_data: NoteCreate):\n    global next_id\n    note = Note(\n        id=next_id,\n        title=note_data.title,\n        content=note_data.content,\n        created_at=datetime.now().isoformat()\n    )\n    notes[next_id] = note\n    next_id += 1\n    return note\n\n@app.delete(\"/notes/{note_id}\")\ndef delete_note(note_id: int):\n    if note_id not in notes:\n        raise HTTPException(status_code=404, detail=\"Note not found\")\n    return notes.pop(note_id)"
+    },
+    {
+      "command": "%python\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"healthy\"}"
+    }
+  ],
+  "metadata": {
+    "language": "python"
+  }
+}

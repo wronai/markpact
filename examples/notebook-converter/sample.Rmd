@@ -1,0 +1,69 @@
+---
+title: "FastAPI Data Analysis"
+output: html_document
+---
+
+# Data Analysis API
+
+This R Markdown demonstrates a Python FastAPI for data analysis.
+
+## Dependencies
+
+```{python}
+import pandas as pd
+from fastapi import FastAPI
+from pydantic import BaseModel
+```
+
+## Data Models
+
+```{python}
+class DataPoint(BaseModel):
+    x: float
+    y: float
+    label: str = ""
+
+class AnalysisResult(BaseModel):
+    mean_x: float
+    mean_y: float
+    count: int
+```
+
+## API Application
+
+```{python}
+app = FastAPI(title="Data Analysis API")
+
+data_points: list[DataPoint] = []
+
+@app.get("/")
+def root():
+    return {"message": "Data Analysis API"}
+
+@app.get("/stats")
+def get_stats():
+    if not data_points:
+        return {"error": "No data"}
+    
+    xs = [p.x for p in data_points]
+    ys = [p.y for p in data_points]
+    
+    return AnalysisResult(
+        mean_x=sum(xs) / len(xs),
+        mean_y=sum(ys) / len(ys),
+        count=len(data_points)
+    )
+
+@app.post("/data")
+def add_data(point: DataPoint):
+    data_points.append(point)
+    return {"added": point, "total": len(data_points)}
+
+@app.get("/data")
+def list_data():
+    return data_points
+```
+
+## Running
+
+Start the server with uvicorn.

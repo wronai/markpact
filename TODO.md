@@ -20,6 +20,7 @@
 - [x] New examples: PHP CLI, React TypeScript SPA, TypeScript Node API
 - [x] Enhanced auto-fix with LLM integration (`--auto-fix-llm`)
 - [x] Automatic dependency addition for ModuleNotFoundError
+- [x] Notebook converter (Jupyter, R Markdown, Quarto, Databricks, Zeppelin)
 
 ## 🎯 Priorytety
 
