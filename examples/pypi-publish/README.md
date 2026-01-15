@@ -1,6 +1,9 @@
 # PyPI Publish Example
 
 Przykład publikacji paczki Python do PyPI bezpośrednio z README.
+```bash
+git clone https://github.com/wronai/markpact.git
+```
 
 ## Użycie
 

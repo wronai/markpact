@@ -16,6 +16,7 @@ Runtime ignoruje zwykły Markdown, a wykonuje wyłącznie codeblocki `markpact:*
 ## 🚀 Szybki start
 
 ```bash
+git clone https://github.com/wronai/markpact.git
 # Instalacja
 pip install markpact[llm]
 

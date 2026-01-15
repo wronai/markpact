@@ -344,14 +344,24 @@ def update_version_in_readme(readme_path: Path, new_version: str) -> bool:
 # PyPI Publisher
 # ============================================================================
 
-def generate_pyproject_toml(config: PublishConfig, sandbox: Sandbox) -> Path:
+def generate_pyproject_toml(config: PublishConfig, sandbox: Sandbox, base_path: Optional[Path] = None, verbose: bool = True) -> Path:
     """Generate pyproject.toml for PyPI publishing."""
+    # Determine where to put pyproject.toml
+    if base_path is None:
+        # For Python packages, check if files are in package subdirectory
+        package_dir = sandbox.path / config.name
+    # Also check with underscores (PyPI normalizes them)
+    package_dir_underscores = sandbox.path / config.name.replace("-", "_")
+    if verbose:
+        print(f"[markpact] DEBUG: package_dir_underscores = {package_dir_underscores}")
+        print(f"[markpact] DEBUG: package_dir_underscores.exists() = {package_dir_underscores.exists()}")
+    if verbose:
     # Always use README content as description (append to config.description if provided)
-    description_parts = []
+        description_parts = []
     if config.description:
         description_parts.append(config.description)
     
-    readme_path = sandbox.path / "README.md"
+    readme_path = base_path / "README.md"
     if readme_path.exists():
         readme_content = readme_path.read_text()
         # Remove title lines and code blocks, keep the rest
@@ -398,7 +408,7 @@ requires-python = ">=3.10"
 Homepage = "{config.repository}"
 '''
     
-    path = sandbox.path / "pyproject.toml"
+    path = base_path / "pyproject.toml"
     path.write_text(content)
     return path
 
@@ -424,11 +434,25 @@ def publish_pypi(
         if verbose:
             print(f"[markpact] Normalized name to: {config.name}")
     
+    # For Python packages, files should be in the package directory
+    package_dir = sandbox.path / config.name
+    # Also check with underscores (PyPI normalizes them)
+    package_dir_underscores = sandbox.path / config.name.replace("-", "_")
+    if verbose:
+        print(f"[markpact] DEBUG: package_dir_underscores = {package_dir_underscores}")
+        print(f"[markpact] DEBUG: package_dir_underscores.exists() = {package_dir_underscores.exists()}")
+    if package_dir.exists() or package_dir_underscores.exists():
+        # Files are in package subdirectory (e.g., markpact_example_pypi/)
+        base_path = package_dir_underscores if package_dir_underscores.exists() else package_dir
+    else:
+        # Files are in sandbox root
+        base_path = sandbox.path
+
     # Generate pyproject.toml (always ensure it reflects current config)
-    generate_pyproject_toml(config, sandbox)
+    generate_pyproject_toml(config, sandbox, base_path, verbose)
 
     # Auto-install missing build backend if needed (e.g., hatchling)
-    pyproject_path = sandbox.path / "pyproject.toml"
+    pyproject_path = base_path / "pyproject.toml"
     if pyproject_path.exists():
         build_backend = None
         # Try to parse TOML (Python 3.11+ has tomllib; fallback to tomli or regex)
@@ -474,15 +498,17 @@ def publish_pypi(
                     print("[markpact] WARNING: Failed to auto-install hatchling:")
                     print(install_result.stderr[-500:] if install_result.stderr else install_result.stdout[-500:])
     
+    
     # Copy README.md from source to sandbox if it exists
     if verbose:
         print(f"[markpact] DEBUG: source_readme_path = {source_readme_path}")
         print(f"[markpact] DEBUG: source_readme_path.exists() = {source_readme_path.exists() if source_readme_path else 'None'}")
+        print(f"[markpact] DEBUG: base_path = {base_path}")
     if source_readme_path and source_readme_path.exists():
         if verbose:
             print(f"[markpact] Copying README from {source_readme_path}")
-            print(f"[markpact] To {sandbox.path / 'README.md'}")
-        readme = sandbox.path / "README.md"
+            print(f"[markpact] To {base_path / 'README.md'}")
+        readme = base_path / "README.md"
         content = source_readme_path.read_text()
         if verbose:
             print(f"[markpact] README content length: {len(content)}")
@@ -493,7 +519,7 @@ def publish_pypi(
         if verbose:
             print(f"[markpact] Creating minimal README in sandbox")
         # Create README.md in sandbox if not exists
-        readme = sandbox.path / "README.md"
+        readme = base_path / "README.md"
         if not readme.exists():
             readme.write_text(f"# {config.name}\n\n{config.description}\n")
     
@@ -503,7 +529,7 @@ def publish_pypi(
     
     build_result = subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation"],
-        cwd=sandbox.path,
+        cwd=base_path,
         capture_output=True,
         text=True,
     )
@@ -607,7 +633,7 @@ def publish_pypi(
     upload_result = subprocess.run(
         " ".join(upload_cmd),
         shell=True,
-        cwd=sandbox.path,
+        cwd=base_path,
         capture_output=True,
         text=True,
         env=env,
@@ -740,7 +766,7 @@ def publish_npm(
     
     result = subprocess.run(
         cmd,
-        cwd=sandbox.path,
+        cwd=base_path,
         capture_output=True,
         text=True,
     )
@@ -841,7 +867,7 @@ def publish_docker(
     # Build image
     build_result = subprocess.run(
         ["docker", "build", "-t", full_image, "-t", f"{image_name}:latest", "."],
-        cwd=sandbox.path,
+        cwd=base_path,
         capture_output=True,
         text=True,
     )
@@ -860,7 +886,7 @@ def publish_docker(
     # Push image
     push_result = subprocess.run(
         ["docker", "push", full_image],
-        cwd=sandbox.path,
+        cwd=base_path,
         capture_output=True,
         text=True,
     )
@@ -876,7 +902,7 @@ def publish_docker(
     # Also push latest
     subprocess.run(
         ["docker", "push", f"{image_name}:latest"],
-        cwd=sandbox.path,
+        cwd=base_path,
         capture_output=True,
     )
     
