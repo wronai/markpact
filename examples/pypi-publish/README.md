@@ -57,12 +57,16 @@ output:
 [markpact] URL: https://pypi.org/project/markpact-example-pypi/
 [markpact] Updated version in examples/pypi-publish/README.md
 ```
+
+published project:
+[https://pypi.org/project/markpact-example-pypi/](https://pypi.org/project/markpact-example-pypi/)
+
 ---
 
 ```markpact:publish
 registry = pypi
 name = markpact-example-pypi
-version = 0.1.7
+version = 0.1.8
 description = Example package published with markpact
 author = Your Name
 license = MIT
