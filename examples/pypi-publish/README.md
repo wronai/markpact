@@ -32,12 +32,37 @@ username = __token__
 password = pypi-xxxx
 ```
 
+publishing:
+```bash
+markpact examples/pypi-publish/README.md --publish
+```
+
+output:
+```bash
+[markpact] Parsing examples/pypi-publish/README.md
+[markpact] wrote /home/tom/github/wronai/markpact/sandbox/markpact_example_pypi/__init__.py
+[markpact] wrote /home/tom/github/wronai/markpact/sandbox/markpact_example_pypi/cli.py
+[markpact] Bumped version to 0.1.7
+[markpact] Publishing markpact-example-pypi v0.1.7 to PyPI...
+[markpact] Building package...
+[markpact] Uploading to PyPI...
+[markpact] Found ~/.pypirc at: /home/tom/.pypirc
+[markpact] ~/.pypirc section [pypi] parsed:
+    username = __token__
+    password = pypi-AgE...
+[markpact] Running twine command:
+    /home/tom/miniconda3/bin/python3 -m twine upload --config-file /home/tom/.pypirc --verbose dist/*
+[markpact] ✓ Published to PyPI
+[markpact] Version: 0.1.7
+[markpact] URL: https://pypi.org/project/markpact-example-pypi/
+[markpact] Updated version in examples/pypi-publish/README.md
+```
 ---
 
 ```markpact:publish
 registry = pypi
 name = markpact-example-pypi
-version = 0.1.1
+version = 0.1.7
 description = Example package published with markpact
 author = Your Name
 license = MIT

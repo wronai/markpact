@@ -346,6 +346,35 @@ def update_version_in_readme(readme_path: Path, new_version: str) -> bool:
 
 def generate_pyproject_toml(config: PublishConfig, sandbox: Sandbox) -> Path:
     """Generate pyproject.toml for PyPI publishing."""
+    # Always use README content as description (append to config.description if provided)
+    description_parts = []
+    if config.description:
+        description_parts.append(config.description)
+    
+    readme_path = sandbox.path / "README.md"
+    if readme_path.exists():
+        readme_content = readme_path.read_text()
+        # Remove title lines and code blocks, keep the rest
+        lines = readme_content.splitlines()
+        in_codeblock = False
+        for line in lines:
+            stripped = line.strip()
+            # Skip empty lines, titles, and code blocks
+            if not stripped or stripped.startswith("#") or stripped.startswith("```"):
+                if stripped.startswith("```"):
+                    in_codeblock = not in_codeblock
+                continue
+            # Skip content inside code blocks
+            if in_codeblock:
+                continue
+            # Add the line to description
+            description_parts.append(stripped)
+    
+    description = " ".join(description_parts)
+    # Truncate if too long (PyPI has limits)
+    if len(description) > 500:
+        description = description[:497] + "..."
+    
     content = f'''[build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -353,7 +382,7 @@ build-backend = "hatchling.build"
 [project]
 name = "{config.name}"
 version = "{config.version}"
-description = "{config.description}"
+description = "{description}"
 readme = "README.md"
 license = "{config.license}"
 authors = [{{ name = "{config.author}" }}]

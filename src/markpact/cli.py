@@ -143,7 +143,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--publish", action="store_true",
                         help="Publish to registry defined in markpact:publish block")
     parser.add_argument("--bump", choices=["major", "minor", "patch"],
-                        help="Bump version before publishing")
+                        help="Bump version before publishing (default: patch when --publish is used)")
+    parser.add_argument("--no-bump", action="store_true",
+                        help="Disable automatic version bump when publishing")
     parser.add_argument("--registry", metavar="NAME",
                         help="Override registry (pypi, npm, docker, github, ghcr)")
     parser.add_argument("--publish-llm", action="store_true",
@@ -342,40 +344,46 @@ def main(argv: list[str] | None = None) -> int:
         if deps and not args.dry_run:
             sandbox.write_requirements(deps)
         
-        if args.dry_run:
-            print(f"[markpact] Would publish {config.name} v{config.version} to {config.registry}")
-            if args.bump:
-                from .publisher import bump_version
-                new_ver = bump_version(config.version, args.bump)
-                print(f"[markpact] Would bump version to {new_ver}")
-            return 0
-        
-        result = publish(config, sandbox, bump=args.bump, verbose=verbose)
-        
-        if result.success:
-            print(f"[markpact] ✓ {result.message}")
-            print(f"[markpact] Version: {result.version}")
-            if result.url:
-                print(f"[markpact] URL: {result.url}")
-            
-            # Update version in README if bumped
-            if args.bump:
-                if had_publish_block:
-                    if update_version_in_readme(readme, result.version):
-                        print(f"[markpact] Updated version in {readme}")
-                else:
-                    ensure_publish_block_in_readme(readme, config)
-                    if update_version_in_readme(readme, result.version):
-                        print(f"[markpact] Updated version in {readme}")
-            
-            return 0
-        else:
-            print(f"[markpact] ERROR: {result.message}", file=sys.stderr)
-            return 1
+    # Auto-bump version for publish unless --no-bump or explicit --bump
+    bump_type = args.bump
+    if args.publish and not args.no_bump and not bump_type:
+        bump_type = "patch"
+
+    if args.dry_run:
+        print(f"[markpact] Would publish {config.name} v{config.version} to {config.registry}")
+        if bump_type:
+            from .publisher import bump_version
+            new_ver = bump_version(config.version, bump_type)
+            print(f"[markpact] Would bump version to {new_ver}")
+        return 0
+
+    result = publish(config, sandbox, bump=bump_type, verbose=verbose)
+
+    if result.success:
+        print(f"[markpact] ✓ {result.message}")
+        print(f"[markpact] Version: {result.version}")
+        if result.url:
+            print(f"[markpact] URL: {result.url}")
+
+        # Update version in README if bumped
+        if bump_type:
+            if had_publish_block:
+                if update_version_in_readme(readme, result.version):
+                    print(f"[markpact] Updated version in {readme}")
+            else:
+                ensure_publish_block_in_readme(readme, config)
+                if update_version_in_readme(readme, result.version):
+                    print(f"[markpact] Updated version in {readme}")
+
+        return 0
+    else:
+        print(f"[markpact] ERROR: {result.message}", file=sys.stderr)
+        return 1
     
-    # Docker mode
-    if args.docker:
-        from .docker_runner import generate_dockerfile, build_and_run_docker, check_docker_available
+    # Non-publish mode (run normally)
+    if not args.publish:
+        if args.docker:
+            from .docker_runner import generate_dockerfile, build_and_run_docker, check_docker_available
         
         if not check_docker_available():
             print("[markpact] ERROR: Docker is not available. Install Docker first.", file=sys.stderr)
@@ -393,7 +401,7 @@ def main(argv: list[str] | None = None) -> int:
         # Build and run
         return build_and_run_docker(sandbox.path, verbose=verbose)
     
-    # Normal mode
+    # Normal mode (non-Docker, non-publish)
     if deps:
         if args.dry_run:
             print(f"[markpact] Would install: {', '.join(deps)}")

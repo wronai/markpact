@@ -192,6 +192,7 @@ Zobacz `examples/` dla kompletnych projektów:
 |----------|-------------|--------------|
 | FastAPI Todo | Python, FastAPI, SQLite | `markpact examples/fastapi-todo/README.md` |
 | Flask Blog | Python, Flask, Jinja2 | `markpact examples/flask-blog/README.md` |
+| CLI Tool | Python, Click, Rich | `markpact examples/cli-tool/README.md` |
 | Go HTTP API | Go, net/http | `markpact examples/go-http-api/README.md` |
 | Node Express API | Node.js, Express | `markpact examples/node-express-api/README.md` |
 | Rust Axum API | Rust, Axum | `markpact examples/rust-axum-api/README.md` |
@@ -203,6 +204,10 @@ Zobacz `examples/` dla kompletnych projektów:
 | Streamlit Dashboard | Python, Streamlit | `markpact examples/streamlit-dashboard/README.md` |
 | Kivy Mobile | Python, Kivy | `markpact examples/kivy-mobile/README.md` |
 | Electron Desktop | Node.js, Electron | `markpact examples/electron-desktop/README.md` |
+| Markdown Converter | Python, Markdown | `markpact examples/markdown-converter/sample.md --convert` |
+| PyPI Publish | Python, Hatchling, Twine | `markpact examples/pypi-publish/README.md --publish` |
+| npm Publish | Node.js, npm | `markpact examples/npm-publish/README.md --publish` |
+| Docker Publish | Docker | `markpact examples/docker-publish/README.md --publish` |
 
 ## Publikacja do rejestrów
 
