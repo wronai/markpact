@@ -344,20 +344,16 @@ def update_version_in_readme(readme_path: Path, new_version: str) -> bool:
 # PyPI Publisher
 # ============================================================================
 
-def generate_pyproject_toml(config: PublishConfig, sandbox: Sandbox, base_path: Optional[Path] = None, verbose: bool = True) -> Path:
+def generate_pyproject_toml(config, sandbox, base_path=None, verbose=True):
     """Generate pyproject.toml for PyPI publishing."""
     # Determine where to put pyproject.toml
     if base_path is None:
         # For Python packages, check if files are in package subdirectory
         package_dir = sandbox.path / config.name
-    # Also check with underscores (PyPI normalizes them)
-    package_dir_underscores = sandbox.path / config.name.replace("-", "_")
-    if verbose:
-        print(f"[markpact] DEBUG: package_dir_underscores = {package_dir_underscores}")
-        print(f"[markpact] DEBUG: package_dir_underscores.exists() = {package_dir_underscores.exists()}")
-    if verbose:
+        base_path = package_dir if package_dir.exists() else sandbox.path
+    
     # Always use README content as description (append to config.description if provided)
-        description_parts = []
+    description_parts = []
     if config.description:
         description_parts.append(config.description)
     
@@ -385,6 +381,7 @@ def generate_pyproject_toml(config: PublishConfig, sandbox: Sandbox, base_path: 
     if len(description) > 500:
         description = description[:497] + "..."
     
+    import json
     content = f'''[build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -406,11 +403,19 @@ requires-python = ">=3.10"
 
 [project.urls]
 Homepage = "{config.repository}"
+
+
+[project.scripts]
+markpact-example-pypi = "markpact_example_pypi.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["markpact_example_pypi"]
 '''
     
     path = base_path / "pyproject.toml"
     path.write_text(content)
     return path
+
 
 
 def publish_pypi(
