@@ -353,11 +353,12 @@ def main(argv: list[str] | None = None) -> int:
         bump_type = "patch"
 
     if args.dry_run:
-        print(f"[markpact] Would publish {config.name} v{config.version} to {config.registry}")
-        if bump_type:
-            from .publisher import bump_version
-            new_ver = bump_version(config.version, bump_type)
-            print(f"[markpact] Would bump version to {new_ver}")
+        if args.publish:
+            print(f"[markpact] Would publish {config.name} v{config.version} to {config.registry}")
+            if bump_type:
+                from .publisher import bump_version
+                new_ver = bump_version(config.version, bump_type)
+                print(f"[markpact] Would bump version to {new_ver}")
         return 0
 
     # Only publish if --publish flag is set

@@ -1,0 +1,189 @@
+project: markpact
+generated: "2026-01-15T13:56:05.045337"
+modules[20]{path,lang,items}:
+  tests/test_generator.py,python,9
+  tests/test_parser.py,python,5
+  tests/test_sandbox.py,python,5
+  tests/__init__.py,python,0
+  tests/test_converter.py,python,12
+  tests/test_runner.py,python,7
+  tests/test_examples.py,python,1
+  tests/test_cli.py,python,8
+  src/markpact/tester.py,python,10
+  src/markpact/config.py,python,12
+  src/markpact/sandbox.py,python,8
+  src/markpact/cli.py,python,2
+  src/markpact/docker_runner.py,python,6
+  src/markpact/generator.py,python,7
+  src/markpact/runner.py,python,3
+  src/markpact/__init__.py,python,0
+  src/markpact/parser.py,python,2
+  src/markpact/auto_fix.py,python,5
+  src/markpact/publisher.py,python,22
+  src/markpact/converter.py,python,4
+
+function_details:
+  tests/test_generator.py:
+    functions[9]{name,kind,sig,loc,async,lines,cc,does}:
+      test_generator_config_defaults,function,() -> None,15-20,false,6,1,Test default configuration values
+      test_generator_config_from_env,function,() -> None,23-35,false,13,1,Test configuration from environment variables
+      test_get_example_prompt,function,() -> None,38-42,false,5,1,Test getting example prompts by name
+      test_get_example_prompt_unknown,function,() -> None,45-48,false,4,1,Test getting unknown prompt returns the input
+      test_list_example_prompts,function,() -> None,51-57,false,7,1,Test listing example prompts
+      test_system_prompt_contains_format,function,() -> None,60-64,false,5,1,Test system prompt contains markpact format instructions
+      test_example_prompts_dict,function,() -> None,67-73,false,7,2,Test EXAMPLE_PROMPTS dictionary
+      test_generate_contract_integration,function,() -> None,77-93,false,17,1,Integration test for contract generation (skipped by default)
+      test_generate_contract_mock,function,() -> None,96-130,false,35,1,Test generate_contract with mocked litellm
+  tests/test_parser.py:
+    functions[5]{name,kind,sig,loc,async,lines,cc,does}:
+      test_parse_file_block,function,() -> None,6-14,false,9,1,checks parse file block
+      test_parse_deps_block,function,() -> None,17-26,false,10,1,checks parse deps block
+      test_parse_run_block,function,() -> None,29-36,false,8,1,checks parse run block
+      test_parse_multiple_blocks,function,() -> None,39-55,false,17,2,checks parse multiple blocks
+      test_empty_meta,function,() -> None,58-64,false,7,1,checks empty meta
+  tests/test_sandbox.py:
+    functions[5]{name,kind,sig,loc,async,lines,cc,does}:
+      test_sandbox_creation,function,() -> None,9-12,false,4,1,checks sandbox creation
+      test_write_file,function,() -> None,15-20,false,6,1,checks write file
+      test_write_requirements,function,() -> None,23-29,false,7,1,checks write requirements
+      test_venv_paths,function,() -> None,32-37,false,6,1,checks venv paths
+      test_clean,function,() -> None,40-46,false,7,1,checks clean
+  tests/test_converter.py:
+    functions[12]{name,kind,sig,loc,async,lines,cc,does}:
+      test_detect_deps_python,function,() -> None,10-15,false,6,1,checks detect deps python
+      test_detect_deps_with_versions,function,() -> None,18-22,false,5,1,checks detect deps with versions
+      test_detect_file_python,function,() -> None,25-29,false,5,1,checks detect file python
+      test_detect_file_javascript,function,() -> None,32-36,false,5,1,checks detect file javascript
+      test_detect_run_command,function,() -> None,39-42,false,4,1,checks detect run command
+      test_detect_run_python,function,() -> None,45-48,false,4,1,checks detect run python
+      test_suggest_filename_fastapi,function,() -> None,51-54,false,4,1,checks suggest filename fastapi
+      test_suggest_filename_class,function,() -> None,57-60,false,4,1,checks suggest filename class
+      test_suggest_filename_html,function,() -> None,63-66,false,4,2,checks suggest filename html
+      test_convert_simple_markdown,function,() -> None,69-90,false,22,2,checks convert simple markdown
+      test_convert_already_markpact,function,() -> None,93-101,false,9,1,checks convert already markpact
+      test_convert_preserves_non_code,function,() -> None,104-119,false,16,1,checks convert preserves non code
+  tests/test_runner.py:
+    functions[7]{name,kind,sig,loc,async,lines,cc,does}:
+      test_run_cmd_simple,function,() -> None,11-23,false,13,1,Test running a simple command
+      test_run_cmd_with_venv,function,() -> None,26-43,false,18,1,Test run_cmd uses venv when available
+      test_ensure_venv_creates_venv,function,() -> None,46-55,false,10,2,Test ensure_venv creates venv if not exists
+      test_ensure_venv_skips_if_disabled,function,() -> None,58-66,false,9,1,Test ensure_venv respects MARKPACT_NO_VENV
+      test_ensure_venv_skips_if_exists,function,() -> None,69-81,false,13,1,Test ensure_venv skips if venv already exists
+      test_install_deps_empty,function,() -> None,84-91,false,8,1,Test install_deps with empty list
+      test_install_deps_writes_requirements,function,() -> None,94-112,false,19,1,Test install_deps writes requirements.txt
+  tests/test_examples.py:
+    functions[1]{name,kind,sig,loc,async,lines,cc,does}:
+      test_examples_dry_run,function,"(tmp_path:Path) -> None",18-27,false,10,4,checks examples dry run
+  tests/test_cli.py:
+    functions[8]{name,kind,sig,loc,async,lines,cc,does}:
+      test_cli_help,function,(capsys) -> None,9-19,false,11,2,Test --help flag
+      test_cli_version,function,(capsys) -> None,22-31,false,10,2,Test --version flag
+      test_cli_file_not_found,function,(capsys) -> None,34-40,false,7,1,Test error when file not found
+      test_cli_dry_run,function,() -> None,43-60,false,18,1,Test --dry-run flag
+      test_cli_convert_only,function,(capsys) -> None,63-77,false,15,1,Test --convert-only flag
+      test_cli_auto_no_markpact,function,(capsys) -> None,80-104,false,25,1,Test --auto flag with non-markpact file
+      test_cli_save_converted,function,() -> None,107-119,false,13,1,Test --save-converted flag
+      test_cli_quiet_mode,function,() -> None,122-131,false,10,1,Test --quiet flag
+  src/markpact/tester.py:
+    functions[10]{name,kind,sig,loc,async,lines,cc,does}:
+      wait_for_service,function,"(url:str, timeout:int=30, interval:float=0.5) -> bool",54-66,false,13,4,Wait for a service to become available.
+      http_request,function,"(method:str, url:str, data:Optional[dict]=None, headers:Optional[dict]=None, timeout:int=10) -> tuple[int, dict | str]",69-100,false,32,7,"Make an HTTP request and return (status_code, response_body)."
+      run_http_test,function,"(test_spec:str, base_url:str='http://localhost:8000') -> TestResult",103-167,false,65,8,Run a single HTTP test from spec.
+      run_tests_from_block,function,"(test_body:str, base_url:str='http://localhost:8000') -> TestSuite",170-182,false,13,4,Run all tests defined in a test block.
+      run_service_with_tests,function,"(run_command:str, test_body:str, sandbox:Sandbox, port:int=8000, verbose:bool=True) -> tuple[int, TestSuite]",185-270,false,86,16,"Start a service, run tests, and return results."
+      run_shell_tests,function,"(test_body:str, sandbox:Sandbox, verbose:bool=True) -> TestSuite",273-312,false,40,8,Run shell command tests.
+      TestSuite.passed,method,() -> int,33-34,false,2,3,passed
+      TestSuite.failed,method,() -> int,37-38,false,2,3,failed
+      TestSuite.total,method,() -> int,41-42,false,2,1,total
+      TestSuite.print_summary,method,() -> None,44-51,false,8,3,logs summary
+  src/markpact/config.py:
+    functions[12]{name,kind,sig,loc,async,lines,cc,does}:
+      get_env_path,function,() -> Path,49-51,false,3,1,Get the .env file path (can be overridden by MARKPACT_ENV_PATH)
+      ensure_config_dir,function,() -> Path,54-58,false,5,1,Ensure config directory exists
+      load_env,function,"() -> dict[str, str]",61-80,false,20,8,Load configuration from .env file
+      save_env,function,"(config:dict[str,str]) -> Path",83-108,false,26,1,Save configuration to .env file
+      init_env,function,"(force:bool=False) -> tuple[Path, bool]",111-123,false,13,3,Initialize .env file with defaults if it doesn't exist.
+      set_config,function,"(key:str, value:str) -> dict[str, str]",126-131,false,6,1,Set a single configuration value
+      set_model,function,"(model:str) -> dict[str, str]",134-136,false,3,1,Set the LLM model
+      set_api_key,function,"(api_key:str) -> dict[str, str]",139-141,false,3,1,Set the API key
+      set_api_base,function,"(api_base:str) -> dict[str, str]",144-146,false,3,1,Set the API base URL
+      apply_preset,function,"(provider:str, api_key:Optional[str]=None) -> dict[str, str]",149-164,false,16,4,Apply a provider preset configuration
+      show_config,function,() -> str,167-187,false,21,6,Show current configuration as formatted string
+      list_providers,function,() -> str,190-204,false,15,3,List available provider presets
+  src/markpact/sandbox.py:
+    functions[8]{name,kind,sig,loc,async,lines,cc,does}:
+      Sandbox.__init__,method,"(path:Any=None) -> None",10-12,false,3,2,creates
+      Sandbox.venv_bin,method,() -> Path,15-16,false,2,1,venv bin
+      Sandbox.venv_pip,method,() -> Path,19-20,false,2,1,venv pip
+      Sandbox.venv_python,method,() -> Path,23-24,false,2,1,venv python
+      Sandbox.has_venv,method,() -> bool,26-27,false,2,1,has venv
+      Sandbox.write_file,method,"(rel_path:str, content:str) -> Path",29-34,false,6,1,"Write file to sandbox, creating directories as needed"
+      Sandbox.write_requirements,method,"(deps:list[str]) -> Path",36-40,false,5,1,Write requirements.txt
+      Sandbox.clean,method,() -> None,42-46,false,5,2,Remove sandbox directory
+  src/markpact/cli.py:
+    functions[2]{name,kind,sig,loc,async,lines,cc,does}:
+      handle_config_cli,function,"(argv:list[str]) -> int",15-86,false,72,12,Handle config subcommand with its own parser
+      main,function,"(argv:Any=None) -> int",89-466,false,378,95,main
+  src/markpact/docker_runner.py:
+    functions[6]{name,kind,sig,loc,async,lines,cc,does}:
+      generate_dockerfile,function,"(sandbox_path:Path, deps:list[str], run_command:str) -> Path",29-66,false,38,3,Generate a Dockerfile for the markpact project.
+      build_and_run_docker,function,"(sandbox_path:Path, image_name:str='markpact-app', port:int=8000, verbose:bool=True) -> int",69-114,false,46,6,Build and run Docker container from sandbox.
+      check_docker_available,function,() -> bool,117-126,false,10,2,Check if Docker is available.
+      run_docker_with_logs,function,"(sandbox_path:Path, image_name:str='markpact-app', port:int=8000, follow_logs:bool=True, verbose:bool=True) -> subprocess.Popen",129-159,false,31,2,Start Docker container and return process for log monitoring.
+      stream_docker_logs,function,"(process:Any, timeout:Optional[int]=None) -> None",162-185,false,24,8,Stream logs from Docker container.
+      run_docker_with_tests,function,"(sandbox_path:Path, test_body:str, image_name:str='markpact-app', port:int=8000, verbose:bool=True) -> tuple[int, \"TestSuite\"]",188-255,false,68,10,"Build, run Docker container, execute tests, and return results."
+  src/markpact/generator.py:
+    functions[7]{name,kind,sig,loc,async,lines,cc,does}:
+      _fix_unclosed_blocks,function,"(content:str) -> str",143-161,false,19,7,Fix unclosed code blocks in generated content.
+      generate_contract,function,"(prompt:str, config:Optional[GeneratorConfig]=None, verbose:bool=False) -> str",164-251,false,88,17,Generate a markpact contract from a text prompt.
+      save_contract,function,"(content:str, output_path:Path, verbose:bool=False) -> Path",254-271,false,18,2,Save generated contract to file.
+      get_example_prompt,function,"(name:str) -> str",302-304,false,3,1,Get example prompt by name.
+      list_example_prompts,function,"() -> dict[str, str]",307-309,false,3,1,List all available example prompts.
+      GeneratorConfig.from_env,method,"() -> \"GeneratorConfig\"",31-39,false,9,1,Load config from environment variables
+      GeneratorConfig.from_file,method,"(path:Path) -> \"GeneratorConfig\"",42-47,false,6,2,Load config from JSON file
+  src/markpact/runner.py:
+    functions[3]{name,kind,sig,loc,async,lines,cc,does}:
+      run_cmd,function,"(cmd:str, sandbox:Sandbox, verbose:bool=True) -> int",11-21,false,11,3,Run command in sandbox with venv-aware PATH
+      ensure_venv,function,"(sandbox:Sandbox, verbose:bool=True) -> None",24-30,false,7,3,Create venv in sandbox if not exists and not disabled
+      install_deps,function,"(deps:list[str], sandbox:Sandbox, verbose:bool=True) -> None",33-42,false,10,3,Install Python dependencies in sandbox
+  src/markpact/parser.py:
+    functions[2]{name,kind,sig,loc,async,lines,cc,does}:
+      parse_blocks,function,"(text:str) -> list[Block]",24-33,false,10,3,"Parse all markpact:* codeblocks from markdown text"
+      Block.get_path,method,() -> str | None,18-21,false,4,2,Extract path= from meta
+  src/markpact/auto_fix.py:
+    functions[5]{name,kind,sig,loc,async,lines,cc,does}:
+      find_free_port,function,"(start_port:int=8000, max_attempts:int=100) -> int",13-22,false,10,3,Find a free port starting from start_port.
+      detect_error_type,function,"(error_output:str) -> Optional[str]",25-35,false,11,5,Detect the type of error from output.
+      fix_port_in_readme,function,"(readme_path:Path, new_port:int) -> bool",38-61,false,24,3,Update the port in a README file.
+      run_with_auto_fix,function,"(cmd:str, sandbox:Sandbox, readme_path:Optional[Path]=None, verbose:bool=True, max_retries:int=3) -> int",64-148,false,85,14,Run command with automatic error detection and fixing.
+      add_missing_dependency,function,"(readme_path:Path, module_name:str) -> bool",151-167,false,17,3,Add a missing dependency to the README deps block.
+  src/markpact/publisher.py:
+    functions[22]{name,kind,sig,loc,async,lines,cc,does}:
+      _slugify,function,"(name:str) -> str",42-46,false,5,2,slugify
+      _first_heading,function,"(markdown:str) -> str",49-53,false,5,3,first heading
+      _first_paragraph,function,"(markdown:str) -> str",56-73,false,18,7,first paragraph
+      _format_subprocess_failure,function,"(result:Any) -> str",76-82,false,7,5,formats subprocess failure
+      infer_publish_config,function,"(readme_path:Path, markdown:str, blocks:list[object], run_command:Any) -> \"PublishConfig\"",85-160,false,76,30,"Infer a reasonable PublishConfig for READMEs without markpact:publish."
+      prompt_publish_config,function,"(config:PublishConfig) -> \"PublishConfig\"",163-181,false,19,4,Interactively ask user for missing or important publish fields.
+      ensure_publish_block_in_readme,function,"(readme_path:Path, config:PublishConfig) -> None",184-213,false,30,5,"Insert a markpact:publish block into README if none exists."
+      generate_publish_config_with_llm,function,"(markdown:str, verbose:bool=False) -> Optional[\"PublishConfig\"]",216-275,false,60,16,Try to generate a publish config using LLM.
+      bump_version,function,"(version:str, bump_type:str='patch') -> str",278-302,false,25,4,Bump semantic version.
+      extract_version_from_readme,function,"(readme_path:Path) -> Optional[str]",305-322,false,18,4,"Extract version from README markpact:publish block."
+      update_version_in_readme,function,"(readme_path:Path, new_version:str) -> bool",325-340,false,16,2,Update version in README file.
+      get_license_classifier,function,"(license_name:str) -> str",347-359,false,13,1,Map license name to PyPI classifier.
+      generate_pyproject_toml,function,"(config, sandbox, base_path=None, verbose=True) -> None",362-434,false,73,12,Generate pyproject.toml for PyPI publishing.
+      publish_pypi,function,"(config:PublishConfig, sandbox:Sandbox, test:bool=False, verbose:bool=True, source_readme_path:Optional[Path]=None) -> PublishResult",438-703,false,266,85,Publish package to PyPI.
+      generate_package_json,function,"(config:PublishConfig, sandbox:Sandbox) -> Path",710-760,false,51,11,Generate package.json for npm publishing.
+      publish_npm,function,"(config:PublishConfig, sandbox:Sandbox, registry:str='https://registry.npmjs.org', verbose:bool=True) -> PublishResult",763-810,false,48,6,Publish package to npm registry.
+      generate_dockerfile,function,"(config:PublishConfig, sandbox:Sandbox, base_image:str='python:3.12-slim') -> Path",817-865,false,49,10,Generate Dockerfile for Docker publishing.
+      publish_docker,function,"(config:PublishConfig, sandbox:Sandbox, registry:str='docker.io', tag:Optional[str]=None, verbose:bool=True) -> PublishResult",868-937,false,70,9,Build and push Docker image to registry.
+      publish_github_packages,function,"(config:PublishConfig, sandbox:Sandbox, package_type:str='npm', verbose:bool=True) -> PublishResult",944-970,false,27,3,Publish to GitHub Packages.
+      parse_publish_block,function,"(block_body:str, meta:str='') -> PublishConfig",977-1022,false,46,11,Parse publish block content into config.
+      publish,function,"(config:PublishConfig, sandbox:Sandbox, bump:Optional[str]=None, verbose:bool=True, source_readme_path:Optional[Path]=None) -> PublishResult",1025-1068,false,44,9,Publish to specified registry.
+      PublishConfig.__post_init__,method,() -> None,27-29,false,3,2,creates init
+  src/markpact/converter.py:
+    functions[4]{name,kind,sig,loc,async,lines,cc,does}:
+      detect_block_type,function,"(lang:str, body:str) -> tuple[str, str, float, str]",90-130,false,41,19,Detect the markpact block type based on language and content.
+      suggest_filename,function,"(lang:str, body:str, index:int) -> str",133-160,false,28,10,Suggest a filename for a file block.
+      convert_markdown_to_markpact,function,"(text:str, verbose:bool=True) -> ConversionResult",163-243,false,81,3,Convert regular Markdown to markpact format.
+      print_conversion_report,function,"(result:ConversionResult) -> None",246-282,false,37,14,Print a report of the conversion.

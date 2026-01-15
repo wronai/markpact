@@ -8,6 +8,16 @@
 - [x] CLI z pełnymi opcjami
 - [x] Dokumentacja (docs/, examples/)
 - [x] Publikacja na PyPI (Makefile + .pypirc)
+- [x] Generowanie z LLM (`-p "prompt"`, `-e example`)
+- [x] Konfiguracja LLM (`markpact config --provider`)
+- [x] Docker sandbox (`--docker`)
+- [x] HTTP testing (`markpact:test http`)
+- [x] Multi-registry publishing (PyPI, npm, Docker)
+- [x] Dynamic license mapping for PyPI classifiers
+- [x] CLI entry point for published packages
+- [x] Full README as PyPI project description
+- [x] Examples test script (`scripts/test_examples.sh`)
+- [x] New examples: PHP CLI, React TypeScript SPA, TypeScript Node API
 
 ## 🎯 Priorytety
 
@@ -88,8 +98,9 @@ markpact/
 
 ## 🚀 Roadmap
 
-- **v0.1** – MVP (obecny stan)
-- **v0.2** – Pakiet pip, CLI `markpact run README.md`
-- **v0.3** – Node.js deps, `--dry-run`
-- **v0.4** – Watch mode, kolorowe logi
-- **v1.0** – Stabilne API, pełna dokumentacja
+- **v0.1** – MVP (zrealizowane)
+- **v0.2** – Pakiet pip, CLI `markpact run README.md` (zrealizowane)
+- **v0.3** – LLM generation, Docker sandbox, HTTP testing (zrealizowane)
+- **v0.4** – Multi-registry publishing, examples test script (zrealizowane)
+- **v0.5** – Watch mode, kolorowe logi, path traversal validation
+- **v1.0** – Stabilne API, pełna dokumentacja, wszystkie języki

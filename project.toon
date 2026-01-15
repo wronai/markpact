@@ -1,0 +1,177 @@
+# markpact | 20f 3868L | python:20
+# Keys: M=modules, D=details, i=imports, c=classes, f=functions, m=methods
+M[20]:
+  tests/test_generator.py,99
+  tests/test_parser.py,50
+  tests/test_sandbox.py,34
+  tests/__init__.py,0
+  tests/test_converter.py,85
+  tests/test_runner.py,73
+  tests/test_examples.py,18
+  tests/test_cli.py,102
+  src/markpact/tester.py,237
+  src/markpact/config.py,154
+  src/markpact/sandbox.py,35
+  src/markpact/cli.py,352
+  src/markpact/docker_runner.py,185
+  src/markpact/generator.py,211
+  src/markpact/runner.py,30
+  src/markpact/__init__.py,26
+  src/markpact/parser.py,26
+  src/markpact/auto_fix.py,120
+  src/markpact/publisher.py,825
+  src/markpact/converter.py,210
+D:
+  tests/test_generator.py:
+    i: pytest,markpact.generator.{EXAMPLE_PROMPTS,GeneratorConfig,SYSTEM_PROMPT,get_example_prompt,list_example_prompts},unittest.mock.{MagicMock,patch}
+    e: test_generator_config_defaults,test_generator_config_from_env,test_get_example_prompt,test_get_example_prompt_unknown,test_list_example_prompts,test_system_prompt_contains_format,test_example_prompts_dict,test_generate_contract_integration
+    test_generator_config_defaults()->None
+    test_generator_config_from_env()->None
+    test_get_example_prompt()->None
+    test_get_example_prompt_unknown()->None
+    test_list_example_prompts()->None
+    test_system_prompt_contains_format()->None
+    test_example_prompts_dict()->None
+    test_generate_contract_integration()->None
+  tests/test_parser.py:
+    i: markpact.parser.{Block,parse_blocks}
+    e: test_parse_file_block,test_parse_deps_block,test_parse_run_block,test_parse_multiple_blocks,test_empty_meta
+    test_parse_file_block()->None
+    test_parse_deps_block()->None
+    test_parse_run_block()->None
+    test_parse_multiple_blocks()->None
+    test_empty_meta()->None
+  tests/test_sandbox.py:
+    i: tempfile,markpact.sandbox.Sandbox,pathlib.Path
+    e: test_sandbox_creation,test_write_file,test_write_requirements,test_venv_paths,test_clean
+    test_sandbox_creation()->None
+    test_write_file()->None
+    test_write_requirements()->None
+    test_venv_paths()->None
+    test_clean()->None
+  tests/test_converter.py:
+    i: markpact.converter.{convert_markdown_to_markpact,detect_block_type,suggest_filename}
+    e: test_detect_deps_python,test_detect_deps_with_versions,test_detect_file_python,test_detect_file_javascript,test_detect_run_command,test_detect_run_python,test_suggest_filename_fastapi,test_suggest_filename_class
+    test_detect_deps_python()->None
+    test_detect_deps_with_versions()->None
+    test_detect_file_python()->None
+    test_detect_file_javascript()->None
+    test_detect_run_command()->None
+    test_detect_run_python()->None
+    test_suggest_filename_fastapi()->None
+    test_suggest_filename_class()->None
+  tests/test_runner.py:
+    i: tempfile,markpact.runner.{ensure_venv,install_deps,run_cmd},markpact.sandbox.Sandbox,pathlib.Path,unittest.mock.patch
+    e: test_run_cmd_simple,test_run_cmd_with_venv,test_ensure_venv_creates_venv,test_ensure_venv_skips_if_disabled,test_ensure_venv_skips_if_exists,test_install_deps_empty,test_install_deps_writes_requirements
+    test_run_cmd_simple()->None
+    test_run_cmd_with_venv()->None
+    test_ensure_venv_creates_venv()->None
+    test_ensure_venv_skips_if_disabled()->None
+    test_ensure_venv_skips_if_exists()->None
+    test_install_deps_empty()->None
+    test_install_deps_writes_requirements()->None
+  tests/test_examples.py:
+    i: markpact.cli.main,pathlib.Path
+    e: test_examples_dry_run
+    test_examples_dry_run(tmp_path:Path)->None
+  tests/test_cli.py:
+    i: tempfile,markpact.cli.main,pathlib.Path
+    e: test_cli_help,test_cli_version,test_cli_file_not_found,test_cli_dry_run,test_cli_convert_only,test_cli_auto_no_markpact,test_cli_save_converted,test_cli_quiet_mode
+    test_cli_help(capsys)->None
+    test_cli_version(capsys)->None
+    test_cli_file_not_found(capsys)->None
+    test_cli_dry_run()->None
+    test_cli_convert_only(capsys)->None
+    test_cli_auto_no_markpact(capsys)->None
+    test_cli_save_converted()->None
+    test_cli_quiet_mode()->None
+  src/markpact/tester.py:
+    i: json,os,re,subprocess,sys,time,dataclasses.dataclass,pathlib.Path,typing.Optional,urllib.request.urlopen
+    e: TestResult,TestSuite,wait_for_service,http_request,run_http_test,run_tests_from_block,run_service_with_tests,run_shell_tests
+    TestResult:   # Result of a single test
+    TestSuite: passed(0),failed(0),total(0),print_summary(0)  # Collection of test results
+    wait_for_service(url:str;timeout:int=30;interval:float=0.5)->bool
+    http_request(method:str;url:str;data:Optional[dict]=None;headers:Optional[dict]=None;timeout:int=10)->tuple[int, dict | str]
+    run_http_test(test_spec:str;base_url:str='http://localhost:8000')->TestResult
+    run_tests_from_block(test_body:str;base_url:str='http://localhost:8000')->TestSuite
+    run_service_with_tests(run_command:str;test_body:str;sandbox:Sandbox;port:int=8000;verbose:bool=True)->tuple[int, TestSuite]
+    run_shell_tests(test_body:str;sandbox:Sandbox;verbose:bool=True)->TestSuite
+  src/markpact/config.py:
+    i: os,pathlib.Path,typing.Optional
+    e: DEFAULT_ENV_PATH,DEFAULTS,PROVIDER_PRESETS,get_env_path,ensure_config_dir,load_env,save_env,init_env
+    get_env_path()->Path
+    ensure_config_dir()->Path
+    load_env()->dict[str, str]
+    save_env(config:dict[str;str])->Path
+    init_env(force:bool=False)->tuple[Path, bool]
+    set_config(key:str;value:str)->dict[str, str]
+    set_model(model:str)->dict[str, str]
+    set_api_key(api_key:str)->dict[str, str]
+  src/markpact/sandbox.py:
+    i: os,pathlib.Path
+    e: Sandbox
+    Sandbox: __init__(1),venv_bin(0),venv_pip(0),venv_python(0),has_venv(0)  # Manages sandbox directory for markpac...
+  src/markpact/cli.py:
+    i: argparse,sys,__version__,converter.{convert_markdown_to_markpact,print_conversion_report},parser.parse_blocks,pathlib.Path,runner.{install_deps,run_cmd},sandbox.Sandbox
+    e: handle_config_cli,main
+    handle_config_cli(argv:list[str])->int
+    main(argv:Any=None)->int
+  src/markpact/docker_runner.py:
+    i: subprocess,sys,time,pathlib.Path,typing.Optional
+    e: DOCKERFILE_TEMPLATE,generate_dockerfile,build_and_run_docker,check_docker_available,run_docker_with_logs,stream_docker_logs,run_docker_with_tests
+    generate_dockerfile(sandbox_path:Path;deps:list[str];run_command:str)->Path
+    build_and_run_docker(sandbox_path:Path;image_name:str='markpact-app';port:int=8000;verbose:bool=True)->int
+    check_docker_available()->bool
+    run_docker_with_logs(sandbox_path:Path;image_name:str='markpact-app';port:int=8000;follow_logs:bool=True;verbose:bool=True)->subprocess.Popen
+    stream_docker_logs(process:Any;timeout:Optional[int]=None)->None
+    run_docker_with_tests(sandbox_path:Path;test_body:str;image_name:str='markpact-app';port:int=8000;verbose:bool=True)->tuple[int, "TestSuite"]
+  src/markpact/generator.py:
+    i: json,os,warnings,litellm,dataclasses.dataclass,pathlib.Path,typing.Optional
+    e: GeneratorConfig,SYSTEM_PROMPT,generate_contract,save_contract,EXAMPLE_PROMPTS,get_example_prompt,list_example_prompts
+    GeneratorConfig: from_env(0),from_file(1)  # Configuration for LLM generator
+    _fix_unclosed_blocks(content:str)->str
+    generate_contract(prompt:str;config:Optional[GeneratorConfig]=None;verbose:bool=False)->str
+    save_contract(content:str;output_path:Path;verbose:bool=False)->Path
+    get_example_prompt(name:str)->str
+    list_example_prompts()->dict[str, str]
+  src/markpact/runner.py:
+    i: os,subprocess,sys,pathlib.Path,sandbox.Sandbox
+    e: run_cmd,ensure_venv,install_deps
+    run_cmd(cmd:str;sandbox:Sandbox;verbose:bool=True)->int
+    ensure_venv(sandbox:Sandbox;verbose:bool=True)->None
+    install_deps(deps:list[str];sandbox:Sandbox;verbose:bool=True)->None
+  src/markpact/parser.py:
+    i: re,dataclasses.dataclass
+    e: CODEBLOCK_RE,Block,parse_blocks
+    Block: get_path(0)
+    parse_blocks(text:str)->list[Block]
+  src/markpact/auto_fix.py:
+    i: os,re,socket,subprocess,pathlib.Path,sandbox.Sandbox,typing.Optional
+    e: find_free_port,detect_error_type,fix_port_in_readme,run_with_auto_fix,add_missing_dependency
+    find_free_port(start_port:int=8000;max_attempts:int=100)->int
+    detect_error_type(error_output:str)->Optional[str]
+    fix_port_in_readme(readme_path:Path;new_port:int)->bool
+    run_with_auto_fix(cmd:str;sandbox:Sandbox;readme_path:Optional[Path]=None;verbose:bool=True;max_retries:int=3)->int
+    add_missing_dependency(readme_path:Path;module_name:str)->bool
+  src/markpact/publisher.py:
+    i: json,os,re,subprocess,sys,dataclasses.dataclass,pathlib.Path,sandbox.Sandbox,typing.Optional
+    e: PublishConfig,PublishResult,infer_publish_config,prompt_publish_config,ensure_publish_block_in_readme,generate_publish_config_with_llm,bump_version,extract_version_from_readme
+    PublishConfig: __post_init__(0)  # Configuration for publishing
+    PublishResult:   # Result of a publish operation
+    _slugify(name:str)->str
+    _first_heading(markdown:str)->str
+    _first_paragraph(markdown:str)->str
+    _format_subprocess_failure(result:Any)->str
+    infer_publish_config(readme_path:Path;markdown:str;blocks:list[object];run_command:Any)->"PublishConfig"
+    prompt_publish_config(config:PublishConfig)->"PublishConfig"
+    ensure_publish_block_in_readme(readme_path:Path;config:PublishConfig)->None
+    generate_publish_config_with_llm(markdown:str;verbose:bool=False)->Optional["PublishConfig"]
+  src/markpact/converter.py:
+    i: re,dataclasses.{dataclass,field},pathlib.Path
+    e: PATTERNS,LANG_EXTENSIONS,ConvertedBlock,ConversionResult,detect_block_type,suggest_filename,convert_markdown_to_markpact,print_conversion_report
+    ConvertedBlock:   # A converted markpact block.
+    ConversionResult:   # Result of converting a Markdown file.
+    detect_block_type(lang:str;body:str)->tuple[str, str, float, str]
+    suggest_filename(lang:str;body:str;index:int)->str
+    convert_markdown_to_markpact(text:str;verbose:bool=True)->ConversionResult
+    print_conversion_report(result:ConversionResult)->None

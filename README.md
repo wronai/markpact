@@ -11,6 +11,29 @@
 Markpact to minimalny runtime, który pozwala trzymać cały projekt w jednym `README.md`.
 Runtime ignoruje zwykły Markdown, a wykonuje wyłącznie codeblocki `markpact:*`.
 
+## 💡 Czym jest Markpact?
+
+Markpact to narzędzie, które zamienia plik README.md w **wykonywalny kontrakt projektu**. Zamiast utrzymywać osobno dokumentację i kod źródłowy, wszystko znajduje się w jednym miejscu.
+
+### Kluczowe możliwości:
+
+| Funkcja | Opis |
+|---------|------|
+| **Executable README** | Uruchom cały projekt z jednego pliku README.md |
+| **LLM Generation** | Wygeneruj projekt z opisu tekstowego: `markpact -p "REST API"` |
+| **Multi-language** | Python, Node.js, Go, Rust, PHP, TypeScript, React |
+| **Publishing** | Publikuj do PyPI, npm, Docker Hub jedną komendą |
+| **Docker Sandbox** | Uruchom w izolowanym kontenerze: `--docker` |
+| **HTTP Testing** | Definiuj testy HTTP w `markpact:test http` |
+| **Auto-fix** | Automatyczne naprawianie błędów runtime |
+
+### Dla kogo?
+
+- **Deweloperzy** – szybkie prototypowanie i uruchamianie projektów
+- **DevOps** – CI/CD z README jako single source of truth
+- **Edukatorzy** – interaktywne tutoriale z wykonywalnym kodem
+- **LLM/AI** – generowanie i modyfikacja projektów przez AI
+
 ![img_3.png](img_3.png)
 
 ## 🚀 Szybki start
@@ -102,6 +125,24 @@ Obsługiwane rejestry: **PyPI**, **npm**, **Docker Hub**, **GitHub Packages**, *
 | [PHP CLI](examples/php-cli/) | CLI w PHP | `markpact examples/php-cli/README.md` |
 | [React TypeScript SPA](examples/react-typescript-spa/) | SPA React + TS | `markpact examples/react-typescript-spa/README.md` |
 | [TypeScript Node API](examples/typescript-node-api/) | REST API w TS (Node) | `markpact examples/typescript-node-api/README.md` |
+| [PyPI Publish](examples/pypi-publish/) | Publikacja do PyPI | `markpact examples/pypi-publish/README.md --publish` |
+| [npm Publish](examples/npm-publish/) | Publikacja do npm | `markpact examples/npm-publish/README.md --publish` |
+| [Docker Publish](examples/docker-publish/) | Publikacja do Docker | `markpact examples/docker-publish/README.md --publish` |
+
+## 🧪 Testowanie przykładów
+
+Uruchom automatyczne testy wszystkich przykładów:
+
+```bash
+# Dry-run (tylko parsowanie)
+./scripts/test_examples.sh
+
+# Pełne uruchomienie
+./scripts/test_examples.sh --run
+
+# Verbose output
+./scripts/test_examples.sh --verbose
+```
 
 ## 🔄 Konwersja zwykłego Markdown
 

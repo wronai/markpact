@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Examples Test Script** (`scripts/test_examples.sh`):
+  - Automated testing of all 18 examples
+  - Supports dry-run and full-run modes
+  - Categorized tests: Python, Node.js, Other, Publish, Converter
+  - Summary with pass/fail/skip counts
+- **Dynamic License Mapping** (`publisher.py`):
+  - `get_license_classifier()` maps license names to PyPI classifiers
+  - Supports: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause, ISC, LGPL-3.0, MPL-2.0, Unlicense
+- **CLI Entry Point for PyPI packages**:
+  - `[project.scripts]` section in generated `pyproject.toml`
+  - Full README as project description on PyPI
+- **New Examples**:
+  - `php-cli/` – CLI application in PHP
+  - `react-typescript-spa/` – React + TypeScript SPA with Vite
+  - `typescript-node-api/` – REST API in TypeScript (Node)
 - **LLM Contract Generation** (`generator.py`):
   - Generate markpact READMEs from text prompts: `markpact -p "REST API for tasks"`
   - Support for 16 example prompts: `markpact --list-examples`
