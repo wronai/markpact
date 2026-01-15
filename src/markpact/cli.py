@@ -357,7 +357,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[markpact] Would bump version to {new_ver}")
         return 0
 
-    result = publish(config, sandbox, bump=bump_type, verbose=verbose)
+    result = publish(config, sandbox, bump=bump_type, verbose=verbose, source_readme_path=readme)
 
     if result.success:
         print(f"[markpact] ✓ {result.message}")

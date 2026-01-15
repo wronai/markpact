@@ -408,6 +408,7 @@ def publish_pypi(
     sandbox: Sandbox,
     test: bool = False,
     verbose: bool = True,
+    source_readme_path: Optional[Path] = None,
 ) -> PublishResult:
     """Publish package to PyPI."""
     
@@ -473,10 +474,28 @@ def publish_pypi(
                     print("[markpact] WARNING: Failed to auto-install hatchling:")
                     print(install_result.stderr[-500:] if install_result.stderr else install_result.stdout[-500:])
     
-    # Create README.md in sandbox if not exists
-    readme = sandbox.path / "README.md"
-    if not readme.exists():
-        readme.write_text(f"# {config.name}\n\n{config.description}\n")
+    # Copy README.md from source to sandbox if it exists
+    if verbose:
+        print(f"[markpact] DEBUG: source_readme_path = {source_readme_path}")
+        print(f"[markpact] DEBUG: source_readme_path.exists() = {source_readme_path.exists() if source_readme_path else 'None'}")
+    if source_readme_path and source_readme_path.exists():
+        if verbose:
+            print(f"[markpact] Copying README from {source_readme_path}")
+            print(f"[markpact] To {sandbox.path / 'README.md'}")
+        readme = sandbox.path / "README.md"
+        content = source_readme_path.read_text()
+        if verbose:
+            print(f"[markpact] README content length: {len(content)}")
+        readme.write_text(content)
+        if verbose:
+            print(f"[markpact] README written, exists: {readme.exists()}")
+    else:
+        if verbose:
+            print(f"[markpact] Creating minimal README in sandbox")
+        # Create README.md in sandbox if not exists
+        readme = sandbox.path / "README.md"
+        if not readme.exists():
+            readme.write_text(f"# {config.name}\n\n{config.description}\n")
     
     # Build package
     if verbose:
@@ -642,10 +661,39 @@ def publish_pypi(
 
 def generate_package_json(config: PublishConfig, sandbox: Sandbox) -> Path:
     """Generate package.json for npm publishing."""
+    # Always use README content as description (append to config.description if provided)
+    description_parts = []
+    if config.description:
+        description_parts.append(config.description)
+    
+    readme_path = sandbox.path / "README.md"
+    if readme_path.exists():
+        readme_content = readme_path.read_text()
+        # Remove title lines and code blocks, keep the rest
+        lines = readme_content.splitlines()
+        in_codeblock = False
+        for line in lines:
+            stripped = line.strip()
+            # Skip empty lines, titles, and code blocks
+            if not stripped or stripped.startswith("#") or stripped.startswith("```"):
+                if stripped.startswith("```"):
+                    in_codeblock = not in_codeblock
+                continue
+            # Skip content inside code blocks
+            if in_codeblock:
+                continue
+            # Add the line to description
+            description_parts.append(stripped)
+    
+    description = " ".join(description_parts)
+    # Truncate if too long (npm has limits)
+    if len(description) > 500:
+        description = description[:497] + "..."
+    
     package = {
         "name": config.name,
         "version": config.version,
-        "description": config.description,
+        "description": description,
         "main": "index.js",
         "scripts": {
             "test": "echo \"No tests specified\" && exit 0"
@@ -720,11 +768,40 @@ def publish_npm(
 
 def generate_dockerfile(config: PublishConfig, sandbox: Sandbox, base_image: str = "python:3.12-slim") -> Path:
     """Generate Dockerfile for Docker publishing."""
+    # Always use README content as description (append to config.description if provided)
+    description_parts = []
+    if config.description:
+        description_parts.append(config.description)
+    
+    readme_path = sandbox.path / "README.md"
+    if readme_path.exists():
+        readme_content = readme_path.read_text()
+        # Remove title lines and code blocks, keep the rest
+        lines = readme_content.splitlines()
+        in_codeblock = False
+        for line in lines:
+            stripped = line.strip()
+            # Skip empty lines, titles, and code blocks
+            if not stripped or stripped.startswith("#") or stripped.startswith("```"):
+                if stripped.startswith("```"):
+                    in_codeblock = not in_codeblock
+                continue
+            # Skip content inside code blocks
+            if in_codeblock:
+                continue
+            # Add the line to description
+            description_parts.append(stripped)
+    
+    description = " ".join(description_parts)
+    # Truncate if too long (Docker labels have limits)
+    if len(description) > 500:
+        description = description[:497] + "..."
+    
     content = f'''FROM {base_image}
 
 LABEL maintainer="{config.author}"
 LABEL version="{config.version}"
-LABEL description="{config.description}"
+LABEL description="{description}"
 
 WORKDIR /app
 
@@ -902,6 +979,7 @@ def publish(
     sandbox: Sandbox,
     bump: Optional[str] = None,
     verbose: bool = True,
+    source_readme_path: Optional[Path] = None,
 ) -> PublishResult:
     """Publish to specified registry.
     
@@ -922,9 +1000,9 @@ def publish(
     
     # Dispatch to appropriate publisher
     if config.registry == "pypi":
-        return publish_pypi(config, sandbox, verbose=verbose)
+        return publish_pypi(config, sandbox, verbose=verbose, source_readme_path=source_readme_path)
     elif config.registry == "pypi-test":
-        return publish_pypi(config, sandbox, test=True, verbose=verbose)
+        return publish_pypi(config, sandbox, test=True, verbose=verbose, source_readme_path=source_readme_path)
     elif config.registry == "npm":
         return publish_npm(config, sandbox, verbose=verbose)
     elif config.registry == "docker":

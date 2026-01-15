@@ -66,7 +66,7 @@ published project:
 ```markpact:publish
 registry = pypi
 name = markpact-example-pypi
-version = 0.1.8
+version = 0.1.11
 description = Example package published with markpact
 author = Your Name
 license = MIT
