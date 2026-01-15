@@ -106,7 +106,7 @@ name = markpact-example-pypi
 version = 0.1.18
 description = Example package published with markpact
 author = Your Name
-license = MIT
+license = Apache-2.0
 keywords = example, markpact, demo
 repository = https://github.com/your/repo
 ```

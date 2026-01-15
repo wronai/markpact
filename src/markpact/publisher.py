@@ -344,6 +344,21 @@ def update_version_in_readme(readme_path: Path, new_version: str) -> bool:
 # PyPI Publisher
 # ============================================================================
 
+def get_license_classifier(license_name: str) -> str:
+    """Map license name to PyPI classifier."""
+    license_mapping = {
+        "MIT": "MIT License",
+        "Apache-2.0": "Apache Software License",
+        "GPL-3.0": "GNU General Public License v3 (GPLv3)",
+        "BSD-3-Clause": "BSD License",
+        "ISC": "ISC License",
+        "LGPL-3.0": "GNU Lesser General Public License v3 (LGPLv3)",
+        "MPL-2.0": "Mozilla Public License 2.0 (MPL 2.0)",
+        "Unlicense": "Unlicense",
+    }
+    return license_mapping.get(license_name, license_name)
+
+
 def generate_pyproject_toml(config, sandbox, base_path=None, verbose=True):
     """Generate pyproject.toml for PyPI publishing."""
     # Determine where to put pyproject.toml
@@ -381,6 +396,9 @@ def generate_pyproject_toml(config, sandbox, base_path=None, verbose=True):
     if len(description) > 500:
         description = description[:497] + "..."
     
+    # Map license to classifier
+    license_classifier = get_license_classifier(config.license)
+    
     import json
     content = f'''[build-system]
 requires = ["hatchling"]
@@ -396,7 +414,7 @@ authors = [{{ name = "{config.author}" }}]
 keywords = {json.dumps(config.keywords)}
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: {license_classifier}",
     "Operating System :: OS Independent",
 ]
 requires-python = ">=3.10"

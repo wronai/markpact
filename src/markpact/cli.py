@@ -87,6 +87,10 @@ def handle_config_cli(argv: list[str]) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Import functions early to avoid UnboundLocalError
+    from .publisher import publish
+    from .docker_runner import check_docker_available, generate_dockerfile, build_and_run_docker
+    
     # Check if first arg is 'config' subcommand
     args_list = argv if argv is not None else sys.argv[1:]
     
@@ -309,7 +313,6 @@ def main(argv: list[str] | None = None) -> int:
             infer_publish_config,
             parse_publish_block,
             prompt_publish_config,
-            publish,
             update_version_in_readme,
         )
         
@@ -357,28 +360,22 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[markpact] Would bump version to {new_ver}")
         return 0
 
-    result = publish(config, sandbox, bump=bump_type, verbose=verbose, source_readme_path=readme)
+    # Only publish if --publish flag is set
+    if args.publish:
+        result = publish(config, sandbox, bump=bump_type, verbose=verbose, source_readme_path=readme)
 
-    if result.success:
-        print(f"[markpact] ✓ {result.message}")
-        print(f"[markpact] Version: {result.version}")
-        if result.url:
-            print(f"[markpact] URL: {result.url}")
+        if result.success:
+            print(f"[markpact] ✓ {result.message}")
+            print(f"[markpact] Version: {result.version}")
+            if result.url:
+                print(f"[markpact] URL: {result.url}")
 
-        # Update version in README if bumped
-        if bump_type:
-            if had_publish_block:
-                if update_version_in_readme(readme, result.version):
-                    print(f"[markpact] Updated version in {readme}")
-            else:
-                ensure_publish_block_in_readme(readme, config)
-                if update_version_in_readme(readme, result.version):
-                    print(f"[markpact] Updated version in {readme}")
-
-        return 0
-    else:
-        print(f"[markpact] ERROR: {result.message}", file=sys.stderr)
-        return 1
+            # Update version in README if bumped
+            if bump_type:
+                update_version_in_readme(readme, result.version, verbose=verbose)
+        else:
+            print(f"[markpact] ERROR: {result.message}", file=sys.stderr)
+            return 1
     
     # Non-publish mode (run normally)
     if not args.publish:
