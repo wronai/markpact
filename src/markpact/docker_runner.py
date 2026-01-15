@@ -1,10 +1,37 @@
 """Docker sandbox runner for Markpact"""
 
+import socket
 import subprocess
 import sys
 import time
 from pathlib import Path
 from typing import Optional
+
+
+def find_free_port(start_port: int = 8000, max_attempts: int = 100) -> int:
+    """Find a free port starting from start_port."""
+    for port in range(start_port, start_port + max_attempts):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(('0.0.0.0', port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError(f"Could not find free port in range {start_port}-{start_port + max_attempts}")
+
+
+def stop_existing_container(container_name: str, verbose: bool = False) -> bool:
+    """Stop and remove existing container if it exists."""
+    try:
+        result = subprocess.run(
+            ["docker", "rm", "-f", container_name],
+            capture_output=True,
+        )
+        if result.returncode == 0 and verbose:
+            print(f"[markpact] Removed existing container: {container_name}")
+        return result.returncode == 0
+    except Exception:
+        return False
 
 DOCKERFILE_TEMPLATE = '''FROM python:3.12-slim
 
@@ -66,13 +93,27 @@ CMD {cmd_json}
     return dockerfile_path
 
 
+def is_port_free(port: int) -> bool:
+    """Check if a port is free."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(('0.0.0.0', port))
+            return True
+        except OSError:
+            return False
+
+
 def build_and_run_docker(
     sandbox_path: Path,
     image_name: str = "markpact-app",
     port: int = 8000,
     verbose: bool = True,
+    auto_find_port: bool = True,
 ) -> int:
-    """Build and run Docker container from sandbox."""
+    """Build and run Docker container from sandbox.
+    
+    Automatically finds a free port if the specified port is in use.
+    """
     
     if verbose:
         print(f"[markpact] Building Docker image: {image_name}")
@@ -90,9 +131,27 @@ def build_and_run_docker(
             print(build_result.stderr.decode(), file=sys.stderr)
         return build_result.returncode
     
+    container_name = f"{image_name}-container"
+    
+    # Stop any existing container with the same name
+    stop_existing_container(container_name, verbose=verbose)
+    
+    # Find a free port if needed
+    current_port = port
+    if auto_find_port and not is_port_free(port):
+        if verbose:
+            print(f"[markpact] Port {port} is in use, finding a free port...")
+        try:
+            current_port = find_free_port(start_port=port + 1)
+            if verbose:
+                print(f"[markpact] Using port {current_port} instead")
+        except RuntimeError as e:
+            print(f"[markpact] ERROR: {e}", file=sys.stderr)
+            return 1
+    
     if verbose:
-        print(f"[markpact] Running container on port {port}")
-        print(f"[markpact] Access at: http://localhost:{port}")
+        print(f"[markpact] Running container on port {current_port}")
+        print(f"[markpact] Access at: http://localhost:{current_port}")
         print(f"[markpact] Press Ctrl+C to stop")
     
     # Run container
@@ -100,9 +159,9 @@ def build_and_run_docker(
         run_result = subprocess.run(
             [
                 "docker", "run", "--rm",
-                "-p", f"{port}:{port}",
-                "-e", f"MARKPACT_PORT={port}",
-                "--name", f"{image_name}-container",
+                "-p", f"{current_port}:{current_port}",
+                "-e", f"MARKPACT_PORT={current_port}",
+                "--name", container_name,
                 image_name,
             ],
             cwd=sandbox_path,
@@ -110,7 +169,7 @@ def build_and_run_docker(
         return run_result.returncode
     except KeyboardInterrupt:
         print(f"\n[markpact] Stopping container...")
-        subprocess.run(["docker", "stop", f"{image_name}-container"], capture_output=True)
+        subprocess.run(["docker", "stop", container_name], capture_output=True)
         return 0
 
 
@@ -132,22 +191,35 @@ def run_docker_with_logs(
     port: int = 8000,
     follow_logs: bool = True,
     verbose: bool = True,
-) -> subprocess.Popen:
+    auto_find_port: bool = True,
+) -> tuple[subprocess.Popen, int]:
     """Start Docker container and return process for log monitoring.
     
     Returns:
-        Popen process that can be used to read logs
+        Tuple of (Popen process, actual port used)
     """
+    container_name = f"{image_name}-container"
+    
+    # Stop any existing container
+    stop_existing_container(container_name)
+    
+    # Find free port if needed
+    current_port = port
+    if auto_find_port and not is_port_free(port):
+        if verbose:
+            print(f"[markpact] Port {port} is in use, finding a free port...")
+        current_port = find_free_port(start_port=port + 1)
+    
     if verbose:
         print(f"[markpact] Starting Docker container: {image_name}")
-        print(f"[markpact] Port: {port}")
+        print(f"[markpact] Port: {current_port}")
     
     process = subprocess.Popen(
         [
             "docker", "run", "--rm",
-            "-p", f"{port}:{port}",
-            "-e", f"MARKPACT_PORT={port}",
-            "--name", f"{image_name}-container",
+            "-p", f"{current_port}:{current_port}",
+            "-e", f"MARKPACT_PORT={current_port}",
+            "--name", container_name,
             image_name,
         ],
         cwd=sandbox_path,
@@ -156,7 +228,7 @@ def run_docker_with_logs(
         text=True,
     )
     
-    return process
+    return process, current_port
 
 
 def stream_docker_logs(process: subprocess.Popen, timeout: Optional[int] = None):
@@ -191,6 +263,7 @@ def run_docker_with_tests(
     image_name: str = "markpact-app",
     port: int = 8000,
     verbose: bool = True,
+    auto_find_port: bool = True,
 ) -> tuple[int, "TestSuite"]:
     """Build, run Docker container, execute tests, and return results."""
     from .tester import run_tests_from_block, wait_for_service, TestSuite, TestResult
@@ -209,8 +282,23 @@ def run_docker_with_tests(
         print(f"[markpact] ERROR: Docker build failed")
         return 1, TestSuite([TestResult("Docker build", False, "Build failed", 0)])
     
+    # Find free port if needed
+    current_port = port
+    if auto_find_port and not is_port_free(port):
+        if verbose:
+            print(f"[markpact] Port {port} is in use, finding a free port...")
+        try:
+            current_port = find_free_port(start_port=port + 1)
+            if verbose:
+                print(f"[markpact] Using port {current_port} instead")
+        except RuntimeError as e:
+            return 1, TestSuite([TestResult("Port allocation", False, str(e), 0)])
+    
     # Start container
-    container_name = f"{image_name}-test-{port}"
+    container_name = f"{image_name}-test-{current_port}"
+    
+    # Stop any existing container with same name
+    stop_existing_container(container_name)
     
     if verbose:
         print(f"[markpact] Starting container: {container_name}")
@@ -218,8 +306,8 @@ def run_docker_with_tests(
     process = subprocess.Popen(
         [
             "docker", "run", "--rm",
-            "-p", f"{port}:{port}",
-            "-e", f"MARKPACT_PORT={port}",
+            "-p", f"{current_port}:{current_port}",
+            "-e", f"MARKPACT_PORT={current_port}",
             "--name", container_name,
             image_name,
         ],
@@ -230,7 +318,7 @@ def run_docker_with_tests(
     
     try:
         # Wait for service
-        base_url = f"http://localhost:{port}"
+        base_url = f"http://localhost:{current_port}"
         if verbose:
             print(f"[markpact] Waiting for service at {base_url}...")
         

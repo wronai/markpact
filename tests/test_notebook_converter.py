@@ -187,9 +187,9 @@ def test_notebook_to_markpact():
     result = notebook_to_markpact(notebook, verbose=False)
     
     assert "# My API" in result
-    assert "markpact:deps python" in result
-    assert "markpact:file python path=" in result
-    assert "markpact:run python" in result
+    assert "```text markpact:deps python" in result
+    assert "```python markpact:file path=" in result
+    assert "```bash markpact:run" in result
     assert "fastapi" in result
 
 

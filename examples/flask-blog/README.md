@@ -19,11 +19,11 @@ Blog będzie dostępny pod: http://localhost:5000
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 flask
 ```
 
-```markpact:file python path=app.py
+```python markpact:file path=app.py
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, g
 
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
 ```
 
-```markpact:file html path=templates/base.html
+```html markpact:file path=templates/base.html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -108,7 +108,7 @@ if __name__ == '__main__':
 </html>
 ```
 
-```markpact:file html path=templates/index.html
+```html markpact:file path=templates/index.html
 {% extends "base.html" %}
 {% block title %}Blog - Strona główna{% endblock %}
 {% block content %}
@@ -127,7 +127,7 @@ if __name__ == '__main__':
 {% endblock %}
 ```
 
-```markpact:file html path=templates/post.html
+```html markpact:file path=templates/post.html
 {% extends "base.html" %}
 {% block title %}{{ post.title }}{% endblock %}
 {% block content %}
@@ -142,7 +142,7 @@ if __name__ == '__main__':
 {% endblock %}
 ```
 
-```markpact:file html path=templates/new.html
+```html markpact:file path=templates/new.html
 {% extends "base.html" %}
 {% block title %}Nowy post{% endblock %}
 {% block content %}
@@ -159,6 +159,6 @@ if __name__ == '__main__':
 {% endblock %}
 ```
 
-```markpact:run python
+```bash markpact:run
 python app.py
 ```

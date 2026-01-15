@@ -25,7 +25,7 @@ Wbudowany runtime parsujący README i wykonujący pozostałe bloki.
 Lista zależności dla danego scope.
 
 ```markdown
-```markpact:deps python
+```text markpact:deps python
 fastapi>=0.100
 uvicorn
 pydantic
@@ -49,7 +49,7 @@ pydantic
 Tworzy plik w sandboxie.
 
 ```markdown
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 from fastapi import FastAPI
 
 app = FastAPI()
@@ -75,7 +75,7 @@ def root():
 Komenda uruchomieniowa.
 
 ```markdown
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
 \```
 ```
@@ -93,7 +93,7 @@ uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
 ### `markpact:config`
 
 ```markdown
-```markpact:config
+```yaml markpact:config
 sandbox: ./my-sandbox
 port: 8080
 env:
@@ -104,7 +104,7 @@ env:
 ### `markpact:test`
 
 ```markdown
-```markpact:test python
+```bash markpact:test
 pytest tests/ -v
 \```
 ```
@@ -112,7 +112,7 @@ pytest tests/ -v
 ### `markpact:ignore`
 
 ```markdown
-```markpact:ignore
+```text markpact:ignore
 Ten blok jest ignorowany przez runtime.
 Przydatne do dokumentacji wewnętrznej.
 \```

@@ -14,6 +14,18 @@ print("hello")
     assert blocks[0].body == 'print("hello")'
 
 
+def test_parse_file_block_new_header():
+    md = '''```python markpact:file path=app/main.py
+print("hello")
+```'''
+    blocks = parse_blocks(md)
+    assert len(blocks) == 1
+    assert blocks[0].kind == "file"
+    assert blocks[0].lang == "python"
+    assert blocks[0].get_path() == "app/main.py"
+    assert blocks[0].body == 'print("hello")'
+
+
 def test_parse_deps_block():
     md = '''```markpact:deps python
 fastapi
@@ -26,6 +38,19 @@ uvicorn
     assert "fastapi" in blocks[0].body
 
 
+def test_parse_deps_block_new_header():
+    md = '''```text markpact:deps python
+fastapi
+uvicorn
+```'''
+    blocks = parse_blocks(md)
+    assert len(blocks) == 1
+    assert blocks[0].kind == "deps"
+    assert blocks[0].lang == "text"
+    assert blocks[0].meta == "python"
+    assert "fastapi" in blocks[0].body
+
+
 def test_parse_run_block():
     md = '''```markpact:run python
 python main.py
@@ -33,6 +58,18 @@ python main.py
     blocks = parse_blocks(md)
     assert len(blocks) == 1
     assert blocks[0].kind == "run"
+    assert blocks[0].body == "python main.py"
+
+
+def test_parse_run_block_new_header():
+    md = '''```bash markpact:run
+python main.py
+```'''
+    blocks = parse_blocks(md)
+    assert len(blocks) == 1
+    assert blocks[0].kind == "run"
+    assert blocks[0].lang == "bash"
+    assert blocks[0].meta == ""
     assert blocks[0].body == "python main.py"
 
 

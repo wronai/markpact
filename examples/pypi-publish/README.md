@@ -100,7 +100,7 @@ published project:
 
 ---
 
-```markpact:publish
+```toml markpact:publish
 registry = pypi
 name = markpact-example-pypi
 version = 0.1.18
@@ -111,7 +111,7 @@ keywords = example, markpact, demo
 repository = https://github.com/your/repo
 ```
 
-```markpact:file python path=markpact_example_pypi/__init__.py
+```python markpact:file path=markpact_example_pypi/__init__.py
 """Example package published with markpact"""
 
 __version__ = "0.1.0"
@@ -125,7 +125,7 @@ def add(a: int, b: int) -> int:
     return a + b
 ```
 
-```markpact:file python path=markpact_example_pypi/cli.py
+```python markpact:file path=markpact_example_pypi/cli.py
 """CLI for example package"""
 
 import argparse
@@ -148,6 +148,6 @@ if __name__ == "__main__":
     main()
 ```
 
-```markpact:test http
+```text markpact:test http
 # No HTTP tests for CLI package
 ```

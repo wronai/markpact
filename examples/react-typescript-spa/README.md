@@ -10,7 +10,7 @@ markpact examples/react-typescript-spa/README.md
 
 ---
 
-```markpact:file json path=package.json
+```json markpact:file path=package.json
 {
   "name": "markpact-react-ts-spa",
   "version": "0.1.0",
@@ -34,7 +34,7 @@ markpact examples/react-typescript-spa/README.md
 }
 ```
 
-```markpact:file ts path=tsconfig.json
+```json markpact:file path=tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -58,7 +58,7 @@ markpact examples/react-typescript-spa/README.md
 }
 ```
 
-```markpact:file ts path=tsconfig.node.json
+```json markpact:file path=tsconfig.node.json
 {
   "compilerOptions": {
     "composite": true,
@@ -72,7 +72,7 @@ markpact examples/react-typescript-spa/README.md
 }
 ```
 
-```markpact:file ts path=vite.config.ts
+```typescript markpact:file path=vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -85,7 +85,7 @@ export default defineConfig({
 })
 ```
 
-```markpact:file tsx path=src/main.tsx
+```tsx markpact:file path=src/main.tsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
@@ -97,7 +97,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 ```
 
-```markpact:file tsx path=src/App.tsx
+```tsx markpact:file path=src/App.tsx
 import { useState } from 'react'
 
 function App() {
@@ -116,7 +116,7 @@ function App() {
 export default App
 ```
 
-```markpact:file html path=index.html
+```html markpact:file path=index.html
 <!doctype html>
 <html lang="en">
   <head>
@@ -132,7 +132,7 @@ export default App
 </html>
 ```
 
-```markpact:run shell
+```bash markpact:run
 # Ensure pnpm is in PATH
 export PATH="${PNPM_HOME:-$HOME/.local/share/pnpm}:$PATH"
 echo "PATH contains pnpm: $(command -v pnpm || echo 'not found')" > /tmp/pnpm_debug.log
@@ -152,6 +152,6 @@ else
 fi
 ```
 
-```markpact:test http
+```text markpact:test http
 GET / EXPECT 200
 ```

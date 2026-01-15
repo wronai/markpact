@@ -10,7 +10,7 @@ markpact examples/node-express-api/README.md
 
 ---
 
-```markpact:file json path=package.json
+```json markpact:file path=package.json
 {
   "name": "markpact-express-example",
   "version": "0.1.0",
@@ -25,7 +25,7 @@ markpact examples/node-express-api/README.md
 }
 ```
 
-```markpact:file javascript path=server.js
+```javascript markpact:file path=server.js
 import express from "express";
 
 const app = express();
@@ -46,12 +46,12 @@ app.listen(port, "0.0.0.0", () => {
 });
 ```
 
-```markpact:run shell
+```bash markpact:run
 npm install
 MARKPACT_PORT=${MARKPACT_PORT:-3000} npm start
 ```
 
-```markpact:test http
+```text markpact:test http
 GET /health EXPECT 200
 POST /echo BODY {"message":"hello"} EXPECT 200
 ```

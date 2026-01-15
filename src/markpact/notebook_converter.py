@@ -487,7 +487,7 @@ def notebook_to_markpact(
     # Extract and add dependencies
     deps = extract_dependencies(notebook)
     if deps:
-        lines.append(f"```markpact:deps {notebook.language}")
+        lines.append(f"```text markpact:deps {notebook.language}")
         for dep in deps:
             lines.append(dep)
         lines.append("```")
@@ -571,14 +571,14 @@ def notebook_to_markpact(
         elif filename.endswith('.js'):
             lang = 'javascript'
         
-        lines.append(f"```markpact:file {lang} path={filename}")
+        lines.append(f"```{lang} markpact:file path={filename}")
         lines.append(content)
         lines.append("```")
         lines.append("")
     
     # Add run command
     run_cmd = suggest_run_command(notebook)
-    lines.append(f"```markpact:run {notebook.language}")
+    lines.append("```bash markpact:run")
     lines.append(run_cmd)
     lines.append("```")
     lines.append("")

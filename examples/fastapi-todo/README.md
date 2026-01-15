@@ -20,14 +20,14 @@ API będzie dostępne pod: http://localhost:8001
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 fastapi
 uvicorn
 sqlalchemy
 pydantic
 ```
 
-```markpact:file python path=app/database.py
+```python markpact:file path=app/database.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -45,7 +45,7 @@ def get_db():
         db.close()
 ```
 
-```markpact:file python path=app/models.py
+```python markpact:file path=app/models.py
 from sqlalchemy import Column, Integer, String, Boolean
 from app.database import Base
 
@@ -58,7 +58,7 @@ class Todo(Base):
     done = Column(Boolean, default=False)
 ```
 
-```markpact:file python path=app/schemas.py
+```python markpact:file path=app/schemas.py
 from pydantic import BaseModel
 
 class TodoBase(BaseModel):
@@ -79,7 +79,7 @@ class TodoResponse(TodoBase):
         from_attributes = True
 ```
 
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -130,6 +130,6 @@ def delete_todo(todo_id: int, db: Session = Depends(get_db)):
     db.commit()
 ```
 
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8001} --reload
 ```

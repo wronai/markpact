@@ -19,12 +19,12 @@ markpact examples/electron-desktop/README.md
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 # Python bootstrap tylko tworzy pliki
 # Uruchomienie wymaga: npm install && npm start
 ```
 
-```markpact:file json path=package.json
+```json markpact:file path=package.json
 {
   "name": "markdown-notes",
   "version": "1.0.0",
@@ -44,7 +44,7 @@ markpact examples/electron-desktop/README.md
 }
 ```
 
-```markpact:file javascript path=main.js
+```javascript markpact:file path=main.js
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -99,7 +99,7 @@ ipcMain.handle('save-file', async (event, { path: filePath, content }) => {
 });
 ```
 
-```markpact:file html path=index.html
+```html markpact:file path=index.html
 <!DOCTYPE html>
 <html>
 <head>
@@ -293,7 +293,7 @@ Enjoy writing! ✨`;
 </html>
 ```
 
-```markpact:run python
+```bash markpact:run
 echo "Electron app created. To run:"
 echo "  cd sandbox && npm install && npm start"
 echo ""

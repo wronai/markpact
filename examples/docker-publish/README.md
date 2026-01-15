@@ -34,7 +34,7 @@ echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
 
 ---
 
-```markpact:publish
+```toml markpact:publish
 registry = docker
 name = yourusername/example-api
 version = 0.1.0
@@ -43,12 +43,12 @@ author = Your Name
 license = MIT
 ```
 
-```markpact:deps python
+```text markpact:deps python
 fastapi
 uvicorn
 ```
 
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 """Example FastAPI application for Docker publishing"""
 
 from fastapi import FastAPI
@@ -80,7 +80,7 @@ def info():
     }
 ```
 
-```markpact:file dockerfile path=Dockerfile
+```dockerfile markpact:file path=Dockerfile
 FROM python:3.12-slim
 
 LABEL maintainer="Your Name"
@@ -103,11 +103,11 @@ EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
 ```
 
-```markpact:test http
+```text markpact:test http
 # Health check
 GET /health EXPECT 200
 

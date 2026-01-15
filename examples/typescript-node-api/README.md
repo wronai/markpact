@@ -10,7 +10,7 @@ markpact examples/typescript-node-api/README.md
 
 ---
 
-```markpact:file json path=package.json
+```json markpact:file path=package.json
 {
   "name": "markpact-ts-node-api",
   "version": "0.1.0",
@@ -35,7 +35,7 @@ markpact examples/typescript-node-api/README.md
 }
 ```
 
-```markpact:file ts path=tsconfig.json
+```json markpact:file path=tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -56,7 +56,7 @@ markpact examples/typescript-node-api/README.md
 }
 ```
 
-```markpact:file ts path=src/index.ts
+```typescript markpact:file path=src/index.ts
 import express from 'express'
 import cors from 'cors'
 
@@ -96,12 +96,12 @@ app.listen(port, '0.0.0.0', () => {
 })
 ```
 
-```markpact:run shell
+```bash markpact:run
 npm install
 npm run build && npm start
 ```
 
-```markpact:test http
+```text markpact:test http
 GET /health EXPECT 200
 POST /echo BODY {"message":"hello"} EXPECT 200
 ```

@@ -169,7 +169,7 @@ def convert_markdown_to_markpact(text: str, verbose: bool = True) -> ConversionR
     result = ConversionResult(original_text=text, converted_text=text)
     
     # Check if already has markpact blocks
-    if "```markpact:" in text:
+    if re.search(r"^```(?:[^\s]+\s+)?markpact:", text, re.MULTILINE):
         result.has_markpact = True
         result.changes.append("File already contains markpact blocks")
         return result
@@ -203,22 +203,22 @@ def convert_markdown_to_markpact(text: str, verbose: bool = True) -> ConversionR
                 # Already have deps, skip
                 return match.group(0)
             deps_found = True
-            new_tag = f"```markpact:deps {meta}"
-            result.changes.append(f"[CONVERT] ```{lang} → ```markpact:deps {meta} ({reason})")
+            new_tag = f"```text markpact:deps {meta}"
+            result.changes.append(f"[CONVERT] ```{lang} → ```text markpact:deps {meta} ({reason})")
         
         elif tag == "run":
             if run_found:
                 # Already have run, skip
                 return match.group(0)
             run_found = True
-            new_tag = f"```markpact:run {meta}"
-            result.changes.append(f"[CONVERT] ```{lang} → ```markpact:run {meta} ({reason})")
+            new_tag = f"```{meta or 'bash'} markpact:run"
+            result.changes.append(f"[CONVERT] ```{lang} → ```{meta or 'bash'} markpact:run ({reason})")
         
         elif tag == "file":
             filename = suggest_filename(meta, body, file_index)
             file_index += 1
-            new_tag = f"```markpact:file {meta} path={filename}"
-            result.changes.append(f"[CONVERT] ```{lang} → ```markpact:file {meta} path={filename} ({reason})")
+            new_tag = f"```{meta} markpact:file path={filename}"
+            result.changes.append(f"[CONVERT] ```{lang} → ```{meta} markpact:file path={filename} ({reason})")
         
         else:
             return match.group(0)

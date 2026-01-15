@@ -418,7 +418,7 @@ markpact -p "REST API dla książek"
 ### 1️⃣ Dependencies 
 
 *markpact:deps python*
-```markpact:deps python
+```text markpact:deps python
 fastapi
 uvicorn
 ```
@@ -426,7 +426,7 @@ uvicorn
 ### 2️⃣ Application Files
 
 *markpact:file python path=app/main.py*
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 from fastapi import FastAPI
 
 app = FastAPI()
@@ -439,6 +439,6 @@ def root():
 ### 3️⃣ Run Command
 
 *markpact:run python*
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8088}
 ```

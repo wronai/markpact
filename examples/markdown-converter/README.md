@@ -67,11 +67,11 @@ markpact examples/markdown-converter/sample.md --convert-only --save-converted o
 
 Ten README sam w sobie jest projektem markpact:
 
-```markpact:deps python
+```text markpact:deps python
 rich
 ```
 
-```markpact:file python path=demo.py
+```python markpact:file path=demo.py
 from rich.console import Console
 from rich.panel import Panel
 
@@ -87,6 +87,6 @@ console.print(Panel.fit(
 ))
 ```
 
-```markpact:run python
+```bash markpact:run
 python demo.py
 ```

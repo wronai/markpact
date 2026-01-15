@@ -184,11 +184,11 @@ def prompt_publish_config(config: "PublishConfig") -> "PublishConfig":
 def ensure_publish_block_in_readme(readme_path: Path, config: "PublishConfig") -> None:
     """Insert a markpact:publish block into README if none exists."""
     text = readme_path.read_text()
-    if "```markpact:publish" in text:
+    if re.search(r"^```(?:[^\s]+\s+)?markpact:publish\b", text, re.MULTILINE):
         return
 
     lines: list[str] = [
-        "```markpact:publish\n",
+        "```toml markpact:publish\n",
         f"registry = {config.registry}\n",
         f"name = {config.name}\n",
         f"version = {config.version}\n",
@@ -205,7 +205,7 @@ def ensure_publish_block_in_readme(readme_path: Path, config: "PublishConfig") -
     block = "".join(lines)
 
     # Insert before first markpact:deps if possible
-    m = re.search(r"^```markpact:deps\b", text, re.MULTILINE)
+    m = re.search(r"^```(?:[^\s]+\s+)?markpact:deps\b", text, re.MULTILINE)
     if m:
         new_text = text[: m.start()] + block + text[m.start() :]
     else:
@@ -264,7 +264,7 @@ def generate_publish_config_with_llm(markdown: str, verbose: bool = False) -> Op
     except Exception:
         return None
 
-    m = re.search(r"```markpact:publish(?P<meta>[^\n]*)\n(?P<body>.*?)\n```", content, re.DOTALL)
+    m = re.search(r"```(?:[^\s]+\s+)?markpact:publish(?P<meta>[^\n]*)\n(?P<body>.*?)\n```", content, re.DOTALL)
     if not m:
         return None
     meta = (m.group("meta") or "").strip()
@@ -307,7 +307,7 @@ def extract_version_from_readme(readme_path: Path) -> Optional[str]:
     content = readme_path.read_text()
     
     # Look for version in publish block
-    match = re.search(r'```markpact:publish[^\n]*\n(.*?)```', content, re.DOTALL)
+    match = re.search(r'```(?:[^\s]+\s+)?markpact:publish[^\n]*\n(.*?)```', content, re.DOTALL)
     if match:
         block = match.group(1)
         version_match = re.search(r'version\s*[=:]\s*["\']?([^"\'\n]+)', block)

@@ -10,7 +10,7 @@ markpact examples/go-http-api/README.md
 
 ---
 
-```markpact:file go path=main.go
+```go markpact:file path=main.go
 package main
 
 import (
@@ -63,11 +63,11 @@ func main() {
 }
 ```
 
-```markpact:run shell
+```bash markpact:run
 go run main.go
 ```
 
-```markpact:test http
+```text markpact:test http
 GET /health EXPECT 200
 POST /echo BODY {"message":"hello"} EXPECT 200
 ```

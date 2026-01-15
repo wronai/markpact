@@ -34,7 +34,7 @@ Dla GitHub Packages, dodaj do `~/.npmrc`:
 
 ---
 
-```markpact:publish
+```toml markpact:publish
 registry = npm
 name = @yourscope/example-package
 version = 0.1.0
@@ -45,7 +45,7 @@ keywords = example, markpact, node
 repository = https://github.com/your/repo
 ```
 
-```markpact:file javascript path=index.js
+```javascript markpact:file path=index.js
 /**
  * Example npm package published with markpact
  * @module @yourscope/example-package
@@ -87,7 +87,7 @@ module.exports = {
 };
 ```
 
-```markpact:file javascript path=cli.js
+```javascript markpact:file path=cli.js
 #!/usr/bin/env node
 /**
  * CLI for example package
@@ -107,7 +107,7 @@ if (args[0] === '--add' && args[1] && args[2]) {
 }
 ```
 
-```markpact:file json path=package.json
+```json markpact:file path=package.json
 {
   "name": "@yourscope/example-package",
   "version": "0.1.0",

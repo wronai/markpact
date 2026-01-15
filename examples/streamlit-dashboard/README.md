@@ -20,13 +20,13 @@ Dashboard będzie dostępny pod: http://localhost:8501
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 streamlit
 pandas
 plotly
 ```
 
-```markpact:file python path=app.py
+```python markpact:file path=app.py
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -152,8 +152,9 @@ if st.button("Export to CSV"):
         file_name="sales_export.csv",
         mime="text/csv"
     )
+
 ```
 
-```markpact:run python
+```bash markpact:run
 streamlit run app.py --server.port ${MARKPACT_PORT:-8501}
 ```

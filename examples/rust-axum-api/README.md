@@ -10,7 +10,7 @@ markpact examples/rust-axum-api/README.md
 
 ---
 
-```markpact:file toml path=Cargo.toml
+```toml markpact:file path=Cargo.toml
 [package]
 name = "markpact_axum_example"
 version = "0.1.0"
@@ -23,7 +23,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 ```
 
-```markpact:file rust path=src/main.rs
+```rust markpact:file path=src/main.rs
 use axum::{
     extract::Json,
     http::StatusCode,
@@ -75,11 +75,11 @@ async fn main() {
 }
 ```
 
-```markpact:run shell
+```bash markpact:run
 cargo run
 ```
 
-```markpact:test http
+```text markpact:test http
 GET /health EXPECT 200
 POST /echo BODY {"message":"hello"} EXPECT 200
 ```

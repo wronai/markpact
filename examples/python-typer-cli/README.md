@@ -10,12 +10,12 @@ markpact examples/python-typer-cli/README.md
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 typer
 rich
 ```
 
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 import typer
 from rich.console import Console
 
@@ -34,11 +34,11 @@ if __name__ == "__main__":
     app()
 ```
 
-```markpact:run python
+```bash markpact:run
 python app/main.py hello --name ${MARKPACT_NAME:-World}
 ```
 
-```markpact:test shell
+```bash markpact:test shell
 python app/main.py hello --name Test
 python app/main.py add 2 3
 ```

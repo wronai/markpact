@@ -17,14 +17,14 @@ It provides endpoints to create short links and resolve them back to the origina
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 fastapi
 uvicorn
 sqlalchemy
 pydantic
 ```
 
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
@@ -120,6 +120,6 @@ async def delete_short_link(short_code: str, db: SessionLocal = Depends(get_db))
     return {"detail": "Short link deleted"}
 ```
 
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8009}
 ```

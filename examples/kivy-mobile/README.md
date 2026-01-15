@@ -25,11 +25,11 @@ buildozer android debug
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 kivy
 ```
 
-```markpact:file python path=main.py
+```python markpact:file path=main.py
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
@@ -169,7 +169,7 @@ if __name__ == '__main__':
     BMIApp().run()
 ```
 
-```markpact:file ini path=buildozer.spec
+```ini markpact:file path=buildozer.spec
 [app]
 title = BMI Calculator
 package.name = bmicalc
@@ -190,6 +190,6 @@ log_level = 2
 warn_on_root = 1
 ```
 
-```markpact:run python
+```bash markpact:run
 python main.py
 ```

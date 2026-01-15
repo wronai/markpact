@@ -162,17 +162,17 @@ markpact sample.md --convert-only --save-converted output.md
 
 Opis projektu (ignorowany przez markpact).
 
-```markpact:deps python
+```text markpact:deps python
 fastapi
 uvicorn
 \```
 
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 from fastapi import FastAPI
 app = FastAPI()
 \```
 
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --port 8000
 \```
 ```
@@ -216,7 +216,7 @@ Markpact umożliwia publikację artefaktów do różnych rejestrów bezpośredni
 ### Blok `markpact:publish`
 
 ```markdown
-```markpact:publish
+```toml markpact:publish
 registry = pypi
 name = my-package
 version = 0.1.0
@@ -268,7 +268,7 @@ markpact README.md --publish --registry docker
 Markpact umożliwia definiowanie testów HTTP bezpośrednio w README:
 
 ```markdown
-```markpact:test http
+```text markpact:test http
 # Health check
 GET /health EXPECT 200
 

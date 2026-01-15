@@ -37,13 +37,13 @@ Użytkownik uruchomi projekt komendą: markpact README.md
 ```markdown
 # Todo API
 
-```markpact:deps python
+```text markpact:deps python
 fastapi
 uvicorn
 pydantic
 \```
 
-```markpact:file python path=app/models.py
+```python markpact:file path=app/models.py
 from pydantic import BaseModel
 
 class Todo(BaseModel):
@@ -52,7 +52,7 @@ class Todo(BaseModel):
     done: bool = False
 \```
 
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 from fastapi import FastAPI
 from app.models import Todo
 
@@ -69,7 +69,7 @@ def create_todo(todo: Todo):
     return todo
 \```
 
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --reload --port 8000
 \```
 ```

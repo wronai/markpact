@@ -36,12 +36,12 @@ python organizer.py --help
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 click
 rich
 ```
 
-```markpact:file python path=organizer.py
+```python markpact:file path=organizer.py
 #!/usr/bin/env python3
 """File Organizer CLI – organize files by extension."""
 
@@ -130,6 +130,6 @@ if __name__ == "__main__":
     organize()
 ```
 
-```markpact:run python
+```bash markpact:run
 python organizer.py --help
 ```

@@ -122,7 +122,7 @@ CMD ["markpact", "README.md"]
 Pinuj wersje zależności:
 
 ```markdown
-```markpact:deps python
+```text markpact:deps python
 fastapi==0.109.0
 uvicorn==0.27.0
 pydantic==2.5.3

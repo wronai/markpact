@@ -10,7 +10,7 @@ markpact examples/php-cli/README.md
 
 ---
 
-```markpact:file php path=src/Greeter.php
+```php markpact:file path=src/Greeter.php
 <?php
 
 class Greeter
@@ -27,7 +27,7 @@ class Greeter
 }
 ```
 
-```markpact:file php path=bin/cli.php
+```php markpact:file path=bin/cli.php
 #!/usr/bin/env php
 <?php
 
@@ -53,11 +53,11 @@ if (isset($opts['n']) || isset($opts['name'])) {
 }
 ```
 
-```markpact:run shell
+```bash markpact:run
 php bin/cli.php --name ${MARKPACT_NAME:-World}
 ```
 
-```markpact:test shell
+```bash markpact:test shell
 php bin/cli.php --name Markpact
 php bin/cli.php --add 3 7
 ```

@@ -60,6 +60,26 @@ python app.py
         assert result == 0
 
 
+def test_cli_dry_run_new_header():
+    """Test --dry-run flag with new markpact fence header syntax"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        readme = Path(tmpdir) / "README.md"
+        readme.write_text('''```text markpact:deps python
+requests
+```
+
+```python markpact:file path=app.py
+print("hello")
+```
+
+```bash markpact:run
+python app.py
+```
+''')
+        result = main([str(readme), "--dry-run", "-s", f"{tmpdir}/sandbox"])
+        assert result == 0
+
+
 def test_cli_convert_only(capsys):
     """Test --convert-only flag"""
     with tempfile.TemporaryDirectory() as tmpdir:

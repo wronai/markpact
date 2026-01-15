@@ -2,6 +2,7 @@
 """Markpact CLI"""
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -279,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
     text_to_parse = original_text
     
     # Check if conversion is needed
-    has_markpact = "```markpact:" in original_text
+    has_markpact = re.search(r"^```(?:[^\s]+\s+)?markpact:", original_text, re.MULTILINE) is not None
     
     if args.convert or args.convert_only or (args.auto and not has_markpact):
         if verbose:

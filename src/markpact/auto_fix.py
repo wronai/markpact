@@ -153,7 +153,7 @@ def add_missing_dependency(readme_path: Path, module_name: str) -> bool:
     content = readme_path.read_text()
     
     # Find deps block
-    pattern = r'(```markpact:deps python\n)(.*?)(```)'
+    pattern = r'(```(?:[^\s]+\s+)?markpact:deps python[^\n]*\n)(.*?)(```)' 
     match = re.search(pattern, content, re.DOTALL)
     
     if match:

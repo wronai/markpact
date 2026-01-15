@@ -51,16 +51,16 @@ markpact examples/<nazwa>/README.md
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 zależność1
 zależność2
 \```
 
-```markpact:file python path=plik.py
+```python markpact:file path=plik.py
 # kod pliku
 \```
 
-```markpact:run python
+```bash markpact:run
 komenda uruchomieniowa
 \```
 ```

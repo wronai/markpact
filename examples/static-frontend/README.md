@@ -12,7 +12,7 @@ markpact examples/static-frontend/README.md
 
 ---
 
-```markpact:file html path=public/index.html
+```html markpact:file path=public/index.html
 <!doctype html>
 <html lang="en">
   <head>
@@ -52,11 +52,11 @@ markpact examples/static-frontend/README.md
 </html>
 ```
 
-```markpact:run shell
+```bash markpact:run
 python3 -m http.server ${MARKPACT_PORT:-8088} --directory public
 ```
 
-```markpact:test http
+```text markpact:test http
 # Health check is not available for static server; just validate root
 GET / EXPECT 200
 ```

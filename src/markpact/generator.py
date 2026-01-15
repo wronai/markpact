@@ -55,14 +55,14 @@ SYSTEM_PROMPT = """You are a Markpact contract generator. Generate executable RE
 2. Use exactly this format for each block type:
 
 ### Dependencies block:
-```markpact:deps python
+```text markpact:deps python
 fastapi
 uvicorn
 sqlalchemy
 ```
 
 ### File block (MUST include path=):
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 from fastapi import FastAPI
 app = FastAPI()
 
@@ -72,12 +72,12 @@ def root():
 ```
 
 ### Run block (MUST be properly closed):
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
 ```
 
 ### Test block (HTTP tests for the API):
-```markpact:test http
+```text markpact:test http
 # Health check
 GET /health EXPECT 200
 
@@ -109,20 +109,20 @@ Brief description.
 
 ---
 
-```markpact:deps python
+```text markpact:deps python
 dep1
 dep2
 ```
 
-```markpact:file python path=app/main.py
+```python markpact:file path=app/main.py
 # complete working code with /health endpoint
 ```
 
-```markpact:run python
+```bash markpact:run
 uvicorn app.main:app --host 0.0.0.0 --port ${MARKPACT_PORT:-8000}
 ```
 
-```markpact:test http
+```text markpact:test http
 # Health check
 GET /health EXPECT 200
 
