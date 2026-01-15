@@ -133,8 +133,23 @@ export default App
 ```
 
 ```markpact:run shell
-npm install
-npm run dev
+# Ensure pnpm is in PATH
+export PATH="${PNPM_HOME:-$HOME/.local/share/pnpm}:$PATH"
+echo "PATH contains pnpm: $(command -v pnpm || echo 'not found')" > /tmp/pnpm_debug.log
+# Prefer pnpm, fallback to npm, then yarn
+if command -v pnpm >/dev/null 2>&1; then
+  echo "Using pnpm" >> /tmp/pnpm_debug.log
+  pnpm install && pnpm dev
+elif command -v npm >/dev/null 2>&1; then
+  echo "Using npm" >> /tmp/pnpm_debug.log
+  npm install && npm run dev
+elif command -v yarn >/dev/null 2>&1; then
+  echo "Using yarn" >> /tmp/pnpm_debug.log
+  yarn install && yarn dev
+else
+  echo "Error: No package manager found. Install pnpm, npm, or yarn." >> /tmp/pnpm_debug.log
+  exit 1
+fi
 ```
 
 ```markpact:test http

@@ -101,50 +101,49 @@ def run_with_auto_fix(
                 capture_output=True,
                 text=True,
             )
+        except KeyboardInterrupt:
+            if verbose:
+                print("\n[markpact] Stopped by user (Ctrl+C)")
+            return 130  # Standard exit code for SIGINT
             
-            # Print output
-            if result.stdout:
-                print(result.stdout, end='')
-            if result.stderr:
-                print(result.stderr, end='')
+        # Print output
+        if result.stdout:
+            print(result.stdout, end='')
+        if result.stderr:
+            print(result.stderr, end='')
+        
+        if result.returncode == 0:
+            return 0
+        
+        # Detect error type
+        combined_output = result.stdout + result.stderr
+        error_type = detect_error_type(combined_output)
+        
+        if error_type == "port_in_use" and attempt < max_retries:
+            # Find a free port and retry
+            new_port = find_free_port()
+            print(f"\n[markpact] Port in use. Trying port {new_port}...")
             
-            if result.returncode == 0:
-                return 0
+            # Update README if provided
+            if readme_path and readme_path.exists():
+                if fix_port_in_readme(readme_path, new_port):
+                    print(f"[markpact] Updated README with new port: {new_port}")
             
-            # Detect error type
-            combined_output = result.stdout + result.stderr
-            error_type = detect_error_type(combined_output)
+            # Update command with new port
+            current_cmd = re.sub(
+                r'\$\{MARKPACT_PORT:-\d+\}',
+                str(new_port),
+                cmd
+            )
+            # Also try direct port replacement
+            current_cmd = re.sub(r'--port\s+\d+', f'--port {new_port}', current_cmd)
             
-            if error_type == "port_in_use" and attempt < max_retries:
-                # Find a free port and retry
-                new_port = find_free_port()
-                print(f"\n[markpact] Port in use. Trying port {new_port}...")
-                
-                # Update README if provided
-                if readme_path and readme_path.exists():
-                    if fix_port_in_readme(readme_path, new_port):
-                        print(f"[markpact] Updated README with new port: {new_port}")
-                
-                # Update command with new port
-                current_cmd = re.sub(
-                    r'\$\{MARKPACT_PORT:-\d+\}',
-                    str(new_port),
-                    cmd
-                )
-                # Also try direct port replacement
-                current_cmd = re.sub(r'--port\s+\d+', f'--port {new_port}', current_cmd)
-                
-                # Set environment variable
-                env["MARKPACT_PORT"] = str(new_port)
-                
-                continue
-            
-            # No auto-fix available
-            return result.returncode
-            
-        except Exception as e:
-            print(f"[markpact] ERROR: {e}")
-            return 1
+            # Set environment variable
+            env["MARKPACT_PORT"] = str(new_port)
+            continue
+        
+        # No auto-fix available
+        return result.returncode
     
     return 1
 
