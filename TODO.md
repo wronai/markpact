@@ -18,6 +18,8 @@
 - [x] Full README as PyPI project description
 - [x] Examples test script (`scripts/test_examples.sh`)
 - [x] New examples: PHP CLI, React TypeScript SPA, TypeScript Node API
+- [x] Enhanced auto-fix with LLM integration (`--auto-fix-llm`)
+- [x] Automatic dependency addition for ModuleNotFoundError
 
 ## 🎯 Priorytety
 

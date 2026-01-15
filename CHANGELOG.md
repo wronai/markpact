@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dynamic License Mapping** (`publisher.py`):
   - `get_license_classifier()` maps license names to PyPI classifiers
   - Supports: MIT, Apache-2.0, GPL-3.0, BSD-3-Clause, ISC, LGPL-3.0, MPL-2.0, Unlicense
+- **Enhanced Auto-Fix** (`auto_fix.py`):
+  - `run_with_auto_fix_llm()` with LLM integration for complex error fixes
+  - Auto-detection of: port_in_use, missing_module, syntax_error, import_error
+  - Automatic dependency addition for ModuleNotFoundError
+  - `--auto-fix-llm` flag for LLM-powered error fixes
 - **CLI Entry Point for PyPI packages**:
   - `[project.scripts]` section in generated `pyproject.toml`
   - Full README as project description on PyPI

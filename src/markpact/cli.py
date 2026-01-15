@@ -140,6 +140,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="Auto-fix runtime errors (e.g., port in use) - enabled by default")
     parser.add_argument("--no-auto-fix", action="store_true",
                         help="Disable auto-fix for runtime errors")
+    parser.add_argument("--auto-fix-llm", action="store_true",
+                        help="Use LLM to fix complex errors (syntax, import errors)")
     parser.add_argument("--test", "-t", action="store_true",
                         help="Run tests defined in markpact:test blocks")
     parser.add_argument("--test-only", action="store_true",
@@ -456,8 +458,14 @@ def main(argv: list[str] | None = None) -> int:
         else:
             use_auto_fix = args.auto_fix and not args.no_auto_fix
             if use_auto_fix:
-                from .auto_fix import run_with_auto_fix
-                run_with_auto_fix(run_command, sandbox, readme_path=readme, verbose=verbose)
+                from .auto_fix import run_with_auto_fix_llm
+                run_with_auto_fix_llm(
+                    run_command, 
+                    sandbox, 
+                    readme_path=readme, 
+                    verbose=verbose,
+                    use_llm=args.auto_fix_llm
+                )
             else:
                 run_cmd(run_command, sandbox, verbose)
     elif verbose:
